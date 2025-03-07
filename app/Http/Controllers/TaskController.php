@@ -8,17 +8,17 @@ use Illuminate\Support\Facades\Validator;
 
 class TaskController extends Controller
 {
-    public function index() {
+    public function index_task() {
         return response()->json(Task::all(), 200);
     }
 
-    public function show($code) {
+    public function show_task($code) {
         $task = Task::where('code', $code)->first();
         if (!$task) return response()->json(['message' => 'Task not found'], 404);
         return response()->json($task, 200);
     }
 
-    public function store(Request $request) {
+    public function store_task(Request $request) {
         $validator = Validator::make($request->all(), [
             'code' => 'required|unique:tasks',
             'task_name' => 'required',
@@ -34,7 +34,7 @@ class TaskController extends Controller
         return response()->json($task, 201);
     }
 
-    public function updateStatus($code, $status) {
+    public function updateStatus_task($code, $status) {
         $task = Task::where('code', $code)->first();
         if (!$task) return response()->json(['message' => 'Task not found'], 404);
 
@@ -46,7 +46,7 @@ class TaskController extends Controller
         return response()->json($task, 200);
     }
 
-    public function destroy($code) {
+    public function destroy_task($code) {
         $task = Task::where('code', $code)->first();
         if (!$task) return response()->json(['message' => 'Task not found'], 404);
 
