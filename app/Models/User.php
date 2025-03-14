@@ -29,7 +29,7 @@ class User extends Authenticatable
     // Define relationship to role_auth through user_role
     public function role()
     {
-        return $this->hasOneThrough(RoleAuth::class, UserRole::class, 'user_nik', 'id', 'nik', 'role_id');
+        return $this->hasOneThrough(RoleAuth::class, UserRole::class, 'user_nik', 'role_auth_id', 'nik', 'role_id');
     }
 
     public function passwords()

@@ -10,5 +10,6 @@ class RoleAuth extends Model
     use HasFactory;
 
     protected $table = 'role_auth';
+    protected $primaryKey = 'role_auth_id';
     protected $fillable = ['role'];
 }
