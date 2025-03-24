@@ -3,6 +3,8 @@
 use App\Http\Controllers\TaskController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\LogController;
+
 
 Route::controller(UserController::class)->group(function () {
     Route::post('/pre-register', 'preRegister');
@@ -22,4 +24,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/tasks/{code}/{status}', [TaskController::class, 'updateStatus_task']);
     Route::delete('/tasks/{code}', [TaskController::class, 'destroy_task']);
 });
+
+Route::post('/logs/store', [LogController::class, 'store']);
+Route::get('/logs', [LogController::class, 'index']);
 

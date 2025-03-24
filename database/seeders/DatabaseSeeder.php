@@ -11,10 +11,15 @@ class DatabaseSeeder extends Seeder
     /**
      * Seed the application's database.
      */
-    public function run() {
+    public function run(): void
+    {
         $this->call([
-            TaskSeeder::class, // Register the TaskSeeder
+            MasterMaterialSeeder::class,
+            BoMSeeder::class,
+            MasterBrmSeeder::class,
+            LogSeeder::class,
         ]);
     }
+
 
 }
