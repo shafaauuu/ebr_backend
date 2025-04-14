@@ -109,8 +109,11 @@ class UserController extends Controller
             'position' => $user->position,
             'div' => $user->div,
             'dept' => $user->dept,
-            'role' => optional($user->role)->role ?? 'No Role', // Get role from role_auth via user_role
+            'role' => optional($user->role)->role ?? 'No Role',
+            'inisial' => $user->inisial,
+            'group' => $user->group,
         ]);
+
     }
 
 

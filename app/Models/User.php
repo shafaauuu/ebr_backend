@@ -11,12 +11,24 @@ class User extends Authenticatable
 {
     use HasFactory, Notifiable, HasApiTokens;
 
+    protected $table = 'users';
+    protected $primaryKey = 'nik';
+
     protected $fillable = [
-        'first_name', 'last_name', 'email',
-        'nik', 'divisi', 'department', 'role_id', 'preregistered_at'
+        'nik',
+        'first_name',
+        'last_name',
+        'email',
+        'password',
+        'position',
+        'div',
+        'dept',
+        'created_at',
+        'updated_at',
+        'inisial',
+        'group',
     ];
 
-    protected $primaryKey = 'nik';
     public $incrementing = false; // Because nik is a string
     protected $keyType = 'string';
 
@@ -29,7 +41,7 @@ class User extends Authenticatable
     // Define relationship to role_auth through user_role
     public function role()
     {
-        return $this->hasOneThrough(RoleAuth::class, UserRole::class, 'user_nik', 'role_auth_id', 'nik', 'role_id');
+        return $this->hasOneThrough(RoleAuth::class, UserRole::class, 'user_nik', 'role_auth_id', 'nik', 'role_auth_id');
     }
 
     public function passwords()

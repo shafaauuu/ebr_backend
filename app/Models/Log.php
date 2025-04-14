@@ -14,7 +14,7 @@ class Log extends Model
     public $timestamps = false;
 
     protected $fillable = [
-        'code_task',
+        'no_doc',
         'action',
         'created_date',
         'created_by',
