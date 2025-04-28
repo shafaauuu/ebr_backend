@@ -42,4 +42,24 @@ class BRMController extends Controller
         return response()->json($materials);
     }
 
+    public function getCategoryByBRM($brmNo)
+    {
+        $decodedBrmNo = urldecode($brmNo);
+
+        \Log::info("Decoded BRM No: '$decodedBrmNo'");
+
+        $brm = \DB::table('master_brms')
+            ->join('brm_categories', 'master_brms.id_category', '=', 'brm_categories.id_category')
+            ->whereRaw('TRIM(LOWER(master_brms.brm_no)) = ?', [strtolower(trim($decodedBrmNo))])
+            ->select('brm_categories.category_name')
+            ->first();
+
+        if (!$brm) {
+            \Log::warning("BRM NOT FOUND for: '$decodedBrmNo'");
+            return response()->json(['error' => 'BRM not found'], 404);
+        }
+
+        return response()->json(['category' => $brm->category_name]);
+    }
+
 }

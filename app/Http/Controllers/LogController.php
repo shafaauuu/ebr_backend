@@ -26,12 +26,12 @@ class LogController extends Controller
         ]);
 
         // Generate code_task
-        $date = Carbon::parse($request->log_date)->format('ymd'); // YYMMDD
+        $date = Carbon::parse($request->log_date)->format('dmy'); // DDMMYY
         $no_doc = $request->brm_no . $date . $request->batch_no;
 
         // Store log
         $log = Log::create([
-            'code_task'    => $no_doc,
+            'no_doc'    => $no_doc,
             'action'       => $request->action,
             'created_date' => now(),
             'created_by'   => $request->created_by,

@@ -5,7 +5,7 @@ use App\Http\Controllers\TaskController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\LogController;
-
+use App\Http\Controllers\MaterialController;
 
 Route::controller(UserController::class)->group(function () {
     Route::post('/pre-register', 'preRegister');
@@ -29,6 +29,9 @@ Route::middleware('auth:sanctum')->group(function () {
 Route::get('/brms', [BRMController::class, 'index']);
 Route::get('/brms/{brmNo}', [BRMController::class, 'show']);
 Route::get('/brms/{brmNo}/materials', [BRMController::class, 'getMaterials']);
+Route::get('/brms/{brmNo}/category', [BRMController::class, 'getCategoryByBRM']);
+
+Route::get('/materials/search', [MaterialController::class, 'search']);
 
 Route::post('/logs/store', [LogController::class, 'store']);
 Route::get('/logs', [LogController::class, 'index']);

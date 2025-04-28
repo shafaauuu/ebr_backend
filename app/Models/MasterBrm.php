@@ -11,7 +11,7 @@ class MasterBrm extends Model
 
     protected $table = 'master_brms';
     protected $primaryKey = 'id_brm';
-    public $timestamps = false;
+    public $timestamps = true;
 
     protected $fillable = [
         'material_code',
