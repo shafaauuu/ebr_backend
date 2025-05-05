@@ -8,14 +8,39 @@ use Illuminate\Support\Facades\Validator;
 
 class TaskController extends Controller
 {
-    public function index_task() {
-        return response()->json(Task::all(), 200);
+    public function index_task()
+    {
+        $tasks = Task::with('masterBrm')->get();
+
+        // Format the response
+        $tasks = $tasks->map(function ($task) {
+            return [
+                'code' => $task->masterBrm->product_code ?? 'No Code',
+                'task_name' => $task->masterBrm->product_name ?? 'Unnamed Task',
+                'status' => $task->status,
+                'assigned_by' => $task->assigned_by,
+                'assigned_to' => $task->assigned_to,
+            ];
+        });
+
+        return response()->json($tasks, 200);
     }
 
-    public function show_task($code) {
-        $task = Task::where('code', $code)->first();
+    public function show_task($code)
+    {
+        $task = Task::with('masterBrm')->where('code', $code)->first();
+
         if (!$task) return response()->json(['message' => 'Task not found'], 404);
-        return response()->json($task, 200);
+
+        $formattedTask = [
+            'code' => $task->masterBrm->product_code ?? $task->code,
+            'task_name' => $task->masterBrm->product_name ?? $task->task_name,
+            'status' => $task->status,
+            'assigned_by' => $task->assigned_by,
+            'assigned_to' => $task->assigned_to,
+        ];
+
+        return response()->json($formattedTask, 200);
     }
 
     public function store_task(Request $request) {

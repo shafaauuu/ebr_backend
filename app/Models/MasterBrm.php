@@ -17,5 +17,7 @@ class MasterBrm extends Model
         'material_code',
         'brm_no',
         'brm_machine',
+        'product_code',
+        'product_name',
     ];
 }

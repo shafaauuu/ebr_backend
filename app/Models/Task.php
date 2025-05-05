@@ -8,7 +8,13 @@ use Illuminate\Database\Eloquent\Model;
 class Task extends Model {
     use HasFactory;
 
-    protected $fillable = ['code', 'task_name', 'status', 'assigned_by', 'assigned_to'];
+    protected $fillable = ['code', 'task_name', 'status', 'assigned_by', 'assigned_to', 'id_brm'];
+
+    public function masterBrm()
+    {
+        return $this->belongsTo(MasterBrm::class, 'id_brm', 'id_brm');
+    }
+
 
     public function assignedBy() {
         return $this->belongsTo(User::class, 'assigned_by');

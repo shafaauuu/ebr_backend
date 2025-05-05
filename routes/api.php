@@ -1,6 +1,12 @@
 <?php
 
 use App\Http\Controllers\BRMController;
+
+use App\Http\Controllers\FormA\FormAAssySyringeController;
+use App\Http\Controllers\FormA\FormABlisterController;
+use App\Http\Controllers\FormA\FormAInjectionController;
+use App\Http\Controllers\FormA\FormANeedleAssyController;
+
 use App\Http\Controllers\TaskController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
@@ -36,3 +42,7 @@ Route::get('/materials/search', [MaterialController::class, 'search']);
 Route::post('/logs/store', [LogController::class, 'store']);
 Route::get('/logs', [LogController::class, 'index']);
 
+Route::post('/form-a-assy-syringe', [FormAAssySyringeController::class, 'store']);
+Route::post('/form-a-blister', [FormABlisterController::class, 'store']);
+Route::post('/form-a-injection', [FormAInjectionController::class, 'store']);
+Route::post('/form-a-needle-assy', [FormANeedleAssyController::class, 'store']);

@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('forma_blister', function (Blueprint $table) {
+        Schema::create('form_a_blister', function (Blueprint $table) {
             $table->id();
             $table->string('code_task', 20);
             $table->date('tanggal');

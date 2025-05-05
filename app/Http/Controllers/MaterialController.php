@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\MasterMaterial;
 use App\Models\MasterBrm;
+use Illuminate\Support\Facades\Log;
 
 class MaterialController extends Controller
 {
@@ -17,6 +18,11 @@ class MaterialController extends Controller
             $query = MasterBrm::query()
                 ->join('master_materials', 'master_brms.material_code', '=', 'master_materials.material_code')
                 ->select(
+                    'master_materials.material_code',
+                    'master_materials.material_desc',
+                    'master_materials.material_group'
+                )
+                ->groupBy(
                     'master_materials.material_code',
                     'master_materials.material_desc',
                     'master_materials.material_group'
