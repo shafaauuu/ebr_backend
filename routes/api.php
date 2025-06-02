@@ -7,6 +7,15 @@ use App\Http\Controllers\FormA\FormABlisterController;
 use App\Http\Controllers\FormA\FormAInjectionController;
 use App\Http\Controllers\FormA\FormANeedleAssyController;
 
+use App\Http\Controllers\FormB\FormBAssySyringeController;
+use App\Http\Controllers\FormB\FormBBlisterController;
+use App\Http\Controllers\FormB\FormBInjectionController;
+use App\Http\Controllers\FormB\FormBNeedleAssyController;
+use App\Http\Controllers\FormE\FormEAssySyringeController;
+use App\Http\Controllers\FormE\FormEBlisterController;
+use App\Http\Controllers\FormE\FormEInjectionController;
+use App\Http\Controllers\FormE\FormENeedleAssyController;
+use App\Http\Controllers\MachineController;
 use App\Http\Controllers\TaskController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
@@ -42,7 +51,34 @@ Route::get('/materials/search', [MaterialController::class, 'search']);
 Route::post('/logs/store', [LogController::class, 'store']);
 Route::get('/logs', [LogController::class, 'index']);
 
-Route::post('/form-a-assy-syringe', [FormAAssySyringeController::class, 'store']);
-Route::post('/form-a-blister', [FormABlisterController::class, 'store']);
-Route::post('/form-a-injection', [FormAInjectionController::class, 'store']);
-Route::post('/form-a-needle-assy', [FormANeedleAssyController::class, 'store']);
+Route::middleware('auth:sanctum')->group(function () {
+
+    Route::post('/form-a-assy-syringe', [FormAAssySyringeController::class, 'store']);
+    Route::get('/form-a-assy-syringe/{id}', [FormAAssySyringeController::class, 'show']);
+    Route::post('/form-a-blister', [FormABlisterController::class, 'store']);
+    Route::get('/form-a-blister/{id}', [FormABlisterController::class, 'show']);
+    Route::post('/form-a-injection', [FormAInjectionController::class, 'store']);
+    Route::get('/form-a-injection/{id}', [FormAInjectionController::class, 'show']);
+    Route::post('/form-a-needle-assy', [FormANeedleAssyController::class, 'store']);
+    Route::get('/form-a-needle-assy/{id}', [FormANeedleAssyController::class, 'show']);
+
+    Route::post('/form-b-assy-syringe', [FormBAssySyringeController::class, 'storeQualification']);
+    Route::get('/form-b-assy-syringe/{id}', [FormBAssySyringeController::class, 'show']);
+    Route::post('/form-b-blister', [FormBBlisterController::class, 'storeQualification']);
+    Route::get('/form-b-blister/{id}', [FormBBlisterController::class, 'show']);
+    Route::post('/form-b-injection', [FormBInjectionController::class, 'storeQualification']);
+    Route::get('/form-b-injection/{id}', [FormBInjectionController::class, 'show']);
+    Route::post('/form-b-needle-assy', [FormBNeedleAssyController::class, 'storeQualification']);
+    Route::get('/form-b-needle-assy/{id}', [FormBNeedleAssyController::class, 'show']);
+
+    Route::post('/form-e-assy-syringe', [FormEAssySyringeController::class, 'store']);
+    Route::get('/form-e-assy-syringe/{id}', [FormEAssySyringeController::class, 'show']);
+    Route::post('/form-e-blister', [FormEBlisterController::class, 'store']);
+    Route::get('/form-e-blister/{id}', [FormEBlisterController::class, 'show']);
+    Route::post('/form-e-injection', [FormEInjectionController::class, 'store']);
+    Route::get('/form-e-injection/{id}', [FormEInjectionController::class, 'show']);
+    Route::post('/form-e-needle-assy', [FormENeedleAssyController::class, 'store']);
+    Route::get('/form-e-needle-assy/{id}', [FormENeedleAssyController::class, 'show']);
+});
+
+Route::get('/machines/by-brm/{brm_no}', [MachineController::class, 'getMachinesByBrm']);

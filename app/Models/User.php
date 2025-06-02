@@ -48,4 +48,15 @@ class User extends Authenticatable
     {
         return $this->hasMany(UserPassword::class);
     }
+
+    public function tasksAssignedBy()
+    {
+        return $this->hasMany(NoDoc::class, 'assigned_by', 'nik');
+    }
+
+    public function tasksAssignedTo()
+    {
+        return $this->hasMany(NoDoc::class, 'assigned_to', 'nik');
+    }
+
 }

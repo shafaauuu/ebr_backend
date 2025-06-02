@@ -4,6 +4,7 @@ namespace App\Http\Controllers\FormA;
 
 use App\Http\Controllers\Controller;
 use App\Models\FormA\FormANeedleAssy;
+use App\Models\Log;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -22,6 +23,7 @@ class FormANeedleAssyController extends Controller
     {
         // Manually validate the incoming data
         $validator = Validator::make($request->all(), [
+            'task_id'          => 'required|integer',
             'code_task'        => 'required|string',
             'tanggal'          => 'required|date',
             'sebelum_produk'   => 'required|string',
@@ -55,7 +57,16 @@ class FormANeedleAssyController extends Controller
         }
 
         // If validation passes, create the form
-        $form = FormANeedleAssy::create($validator->validated());
+        $form = FormANeedleAssy::updateOrCreate($validator->validated());
+        Log::create(
+            [
+                'action' => 'ADD FORM A NEDDLE ASSY',
+                'created_date' => now(),
+                'created_by' => $request->user()->nik,
+                'created_at' => now(),
+                'task_id' => $request->task_id,
+            ]
+        );
 
         // Return the created form as JSON
         return response()->json($form, 201);
@@ -64,8 +75,18 @@ class FormANeedleAssyController extends Controller
     // Show a specific record
     public function show($id): JsonResponse
     {
-        $form = FormANeedleAssy::findOrFail($id);
-        return response()->json($form);
+        try {
+            $form = FormANeedleAssy::where('task_id', $id)->orderBy('id', 'desc')->first();
+
+            if (!$form) {
+                return response()->json(['message' => 'Form not found'], 404);
+            }
+
+
+            return response()->json(['data' => $form], 200);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
     }
 
     // Update a specific record

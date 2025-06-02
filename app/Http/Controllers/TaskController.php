@@ -15,7 +15,9 @@ class TaskController extends Controller
         // Format the response
         $tasks = $tasks->map(function ($task) {
             return [
+                'id' => $task->id,
                 'code' => $task->masterBrm->product_code ?? 'No Code',
+                'brm_no' => $task->masterBrm->brm_no,
                 'task_name' => $task->masterBrm->product_name ?? 'Unnamed Task',
                 'status' => $task->status,
                 'assigned_by' => $task->assigned_by,

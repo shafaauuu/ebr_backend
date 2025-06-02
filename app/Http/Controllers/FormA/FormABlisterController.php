@@ -4,6 +4,7 @@ namespace App\Http\Controllers\FormA;
 
 use App\Http\Controllers\Controller;
 use App\Models\FormA\FormABlister;
+use App\Models\Log;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -22,6 +23,7 @@ class FormABlisterController extends Controller
     {
         // Manually validate the incoming data
         $validator = Validator::make($request->all(), [
+            'task_id' => 'required|integer',
             'code_task' => 'required|string',
             'tanggal' => 'required|date',
             'sebelum_produk' => 'required|string',
@@ -46,7 +48,16 @@ class FormABlisterController extends Controller
         }
 
         // If validation passes, create the form
-        $form = FormABlister::create($validator->validated());
+        $form = FormABlister::updateOrCreate($validator->validated());
+        Log::create(
+            [
+                'action' => 'ADD FORM A BLISTER',
+                'created_date' => now(),
+                'created_by' => $request->user()->nik,
+                'created_at' => now(),
+                'task_id' => $request->task_id,
+            ]
+        );
 
         // Return the created form as JSON
         return response()->json($form, 201);
@@ -55,8 +66,18 @@ class FormABlisterController extends Controller
     // GET /form-a-blister/{id}
     public function show($id): JsonResponse
     {
-        $form = FormABlister::findOrFail($id);
-        return response()->json($form);
+        try {
+            $form = FormABlister::where('task_id', $id)->orderBy('id', 'desc')->first();
+
+            if (!$form) {
+                return response()->json(['message' => 'Form not found'], 404);
+            }
+
+
+            return response()->json(['data' => $form], 200);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
     }
 
     // PUT /form-a-blister/{id}

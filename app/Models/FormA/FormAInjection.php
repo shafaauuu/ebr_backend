@@ -27,6 +27,7 @@ class FormAInjection extends Model
         'saat_dokumen',
         'suhu',
         'kelembapan',
+        'task_id'
     ];
 
     protected $casts = [
