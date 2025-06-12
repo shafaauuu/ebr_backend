@@ -15,6 +15,10 @@ use App\Http\Controllers\FormE\FormEAssySyringeController;
 use App\Http\Controllers\FormE\FormEBlisterController;
 use App\Http\Controllers\FormE\FormEInjectionController;
 use App\Http\Controllers\FormE\FormENeedleAssyController;
+use App\Http\Controllers\FormC\FormCAssySyringeController;
+use App\Http\Controllers\FormC\FormCBlisterController;
+use App\Http\Controllers\FormC\FormCInjectionController;
+use App\Http\Controllers\FormC\FormCNeedleAssyController;
 use App\Http\Controllers\MachineController;
 use App\Http\Controllers\TaskController;
 use App\Http\Controllers\UserController;
@@ -71,6 +75,37 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/form-b-needle-assy', [FormBNeedleAssyController::class, 'storeQualification']);
     Route::get('/form-b-needle-assy/{id}', [FormBNeedleAssyController::class, 'show']);
 
+    Route::get('/machines/by-brm/{brm}', [MachineController::class, 'getMachinesByBrm']);
+
+    Route::get('/form-c-assy-syringe', [FormCAssySyringeController::class, 'index']);
+    Route::get('/form-c-assy-syringe/{id}', [FormCAssySyringeController::class, 'show']);
+    Route::post('/form-c-assy-syringe', [FormCAssySyringeController::class, 'store']);
+    Route::put('/form-c-assy-syringe/{id}', [FormCAssySyringeController::class, 'update']);
+    Route::delete('/form-c-assy-syringe/material/{id}', [FormCAssySyringeController::class, 'deleteMaterial']);
+    Route::get('/tasks/{taskId}/materials/{matId}', [FormCAssySyringeController::class, 'getMaterialsByMatId']);
+    Route::get('/tasks/{taskId}/child-materials-assy-syringe', [FormCAssySyringeController::class, 'getChildMaterials']);
+
+    Route::get('/form-c-blister', [FormCBlisterController::class, 'index']);
+    Route::post('/form-c-blister', [FormCBlisterController::class, 'store']);
+    Route::get('/form-c-blister/{id}', [FormCBlisterController::class, 'show']);
+    Route::put('/form-c-blister/{id}', [FormCBlisterController::class, 'update']);
+    Route::delete('/form-c-blister/{id}', [FormCBlisterController::class, 'destroy']);
+    Route::get('/tasks/{taskId}/child-materials-blister', [FormCBlisterController::class, 'getChildMaterials']);
+
+    Route::get('/form-c-injection', [FormCInjectionController::class, 'index']);
+    Route::post('/form-c-injection', [FormCInjectionController::class, 'store']);
+    Route::get('/form-c-injection/{id}', [FormCInjectionController::class, 'show']);
+    Route::put('/form-c-injection/{id}', [FormCInjectionController::class, 'update']);
+    Route::delete('/form-c-injection/{id}', [FormCInjectionController::class, 'destroy']);
+    Route::get('/tasks/{taskId}/child-materials-injection', [FormCInjectionController::class, 'getChildMaterials']);
+
+    Route::get('/form-c-needle-assy', [FormCNeedleAssyController::class, 'index']);
+    Route::post('/form-c-needle-assy', [FormCNeedleAssyController::class, 'store']);
+    Route::get('/form-c-needle-assy/{id}', [FormCNeedleAssyController::class, 'show']);
+    Route::put('/form-c-needle-assy/{id}', [FormCNeedleAssyController::class, 'update']);
+    Route::delete('/form-c-needle-assy/{id}', [FormCNeedleAssyController::class, 'destroy']);
+    Route::get('/tasks/{taskId}/child-materials-needle-assy', [FormCNeedleAssyController::class, 'getChildMaterials']);
+
     Route::post('/form-e-assy-syringe', [FormEAssySyringeController::class, 'store']);
     Route::get('/form-e-assy-syringe/{id}', [FormEAssySyringeController::class, 'show']);
     Route::post('/form-e-blister', [FormEBlisterController::class, 'store']);
@@ -80,5 +115,3 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/form-e-needle-assy', [FormENeedleAssyController::class, 'store']);
     Route::get('/form-e-needle-assy/{id}', [FormENeedleAssyController::class, 'show']);
 });
-
-Route::get('/machines/by-brm/{brm_no}', [MachineController::class, 'getMachinesByBrm']);

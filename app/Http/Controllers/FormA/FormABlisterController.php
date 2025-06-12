@@ -47,17 +47,21 @@ class FormABlisterController extends Controller
             ], 422); // Unprocessable Entity
         }
 
-        // If validation passes, create the form
-        $form = FormABlister::updateOrCreate($validator->validated());
-        Log::create(
-            [
-                'action' => 'ADD FORM A BLISTER',
-                'created_date' => now(),
-                'created_by' => $request->user()->nik,
-                'created_at' => now(),
-                'task_id' => $request->task_id,
-            ]
+        // If validation passes, create or update the form
+        $existing = FormABlister::where('task_id', $request->task_id)->first();
+        $form = FormABlister::updateOrCreate(
+            ['task_id' => $request->task_id],
+            $validator->validated()
         );
+        
+        $action = $existing ? 'UPDATE FORM A BLISTER' : 'ADD FORM A BLISTER';
+        Log::create([
+            'action' => $action,
+            'created_date' => now(),
+            'created_by' => $request->user()->nik,
+            'created_at' => now(),
+            'task_id' => $request->task_id,
+        ]);
 
         // Return the created form as JSON
         return response()->json($form, 201);

@@ -14,6 +14,7 @@ class FormENeedleAssy extends Model
         'jml_release',
         'jml_karantina',
         'jml_reject',
+        'jml_sisa',
         'sample_ipc',
         'sample_qc',
         'sample_release',
