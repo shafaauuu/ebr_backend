@@ -26,7 +26,8 @@ class FormCNeedleAssy extends Model
         'mat_lengkap',
         'remarks_mat',
         'task_id',
-        'id_mat'
+        'id_mat',
+        'id_bom'
     ];
 
     protected $casts = [

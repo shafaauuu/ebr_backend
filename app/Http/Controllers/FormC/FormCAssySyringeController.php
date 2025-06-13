@@ -5,7 +5,6 @@ namespace App\Http\Controllers\FormC;
 use App\Http\Controllers\Controller;
 use App\Models\Bom;
 use App\Models\FormC\FormCAssySyringe;
-use App\Models\FormE\FormEAssySyringe;
 use App\Models\Log;
 use App\Models\MasterMaterial;
 use App\Models\Task;
@@ -26,7 +25,7 @@ class FormCAssySyringeController extends Controller
     /**
      * Get child materials for a specific task
      */
-    public function getChildMaterials($taskId)
+    public function getChildMaterials($taskId, $materialCode)
     {
         try {
             // Load the task with the masterBrm relationship (note the method name matches the relationship in Task model)
@@ -37,15 +36,19 @@ class FormCAssySyringeController extends Controller
                 return response()->json(['error' => 'BRM not found for this task'], 404);
             }
 
-            $materialCode = $task->masterBrm->material_code;
 
             // Get all BOMs where material_code matches and load the childMaterial relationship
             $childMaterials = Bom::with('childMaterial')
+
                 ->where('material_code', $materialCode)
                 ->get()
-                ->pluck('childMaterial')
+//                ->pluck('childMaterial')
                 ->filter() // Remove any null values
                 ->values(); // Reset array keys
+
+            $currentData = FormCAssySyringe::where('task_id', $taskId)
+                ->where('id_mat', $task->masterBrm->id_mat)
+                ->first();
 
             return response()->json($childMaterials);
 
@@ -66,7 +69,7 @@ class FormCAssySyringeController extends Controller
     {
         // Log the incoming request for debugging
         \Log::info('Form C Assy Syringe Request:', $request->all());
-        
+
         $validator = Validator::make($request->all(), [
             'code_task' => 'required|string|max:255',
             'id_brm' => 'required|string|max:255',
@@ -110,18 +113,18 @@ class FormCAssySyringeController extends Controller
         try {
             // Extract the materials array
             $materials = $request->materials;
-            
+
             // Handle both array formats: indexed array or object with numeric keys
             if (!is_array($materials)) {
                 $materials = (array)$materials;
             }
-            
+
             foreach ($materials as $material) {
                 // Convert to array if it's an object
                 if (is_object($material)) {
                     $material = (array)$material;
                 }
-                
+
                 // Create a new array with the common data
                 $formData = [
                     'code_task' => $request->code_task,
@@ -136,6 +139,7 @@ class FormCAssySyringeController extends Controller
                     'batch_no' => $material['batch_no'],
                     'actual_qty' => $material['actual_qty'],
                     'id_mat' => $material['id_mat'] ?? null,
+                    'id_bom' => $material['id_bom'] ?? null,
                 ];
 
                 $form = FormCAssySyringe::create($formData);
@@ -176,48 +180,79 @@ class FormCAssySyringeController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show($id)
+    public function show($id, Request $request)
     {
-        // Get all records for the task instead of just the latest one
-        $forms = FormCAssySyringe::where('task_id', $id)
-            ->with(['material'])
-            ->orderBy('id', 'desc')
-            ->get();
-        
-        // Group the forms by material ID for easier frontend processing
-        $groupedForms = $forms->groupBy('id_mat')->map(function($items) {
-            return $items->map(function($item) {
-                return [
-                    'id' => $item->id,
-                    'batch_no' => $item->batch_no,
-                    'actual_qty' => $item->actual_qty,
-                    'material' => $item->material,
-                    'created_at' => $item->created_at
-                ];
-            });
-        });
-        
-        // Get the common data from the first record
-        $commonData = null;
-        if ($forms->isNotEmpty()) {
-            $firstForm = $forms->first();
-            $commonData = [
-                'code_task' => $firstForm->code_task,
-                'id_brm' => $firstForm->id_brm,
-                'sesuai_picklist' => $firstForm->sesuai_picklist,
-                'remarks_picklist' => $firstForm->remarks_picklist,
-                'sesuai_bets' => $firstForm->sesuai_bets,
-                'remarks_bets' => $firstForm->remarks_bets,
-                'mat_lengkap' => $firstForm->mat_lengkap,
-                'remarks_mat' => $firstForm->remarks_mat,
-                'task_id' => $firstForm->task_id
-            ];
+        try {
+            $isTaskId = $request->query('is_task_id', true);
+
+            if ($isTaskId) {
+                // Get all records for the task
+                $forms = FormCAssySyringe::where('task_id', $id)
+                    ->with(['material', 'task', 'brm'])
+                    ->whereNotNull('id_bom') // Ensure we only get records with a BOM ID
+                    ->orderBy('id', 'desc')
+                    ->get();
+
+                if ($forms->isEmpty()) {
+                    return response()->json([
+                        'message' => 'No Form C Assy Syringe records found for this task',
+                        'data' => null
+                    ], 404);
+                }
+
+                $groupedForms = $forms->groupBy('id_bom')->map(function($items) {
+                    return $items->map(function($item) {
+                        return [
+                            'id' => $item->id,
+                            'batch_no' => $item->batch_no,
+                            'actual_qty' => $item->actual_qty,
+                            'material' => $item->material,
+                            'created_at' => $item->created_at
+                        ];
+                    });
+                });
+
+                // Get the common data from the first record
+                $commonData = null;
+                if ($forms->isNotEmpty()) {
+                    $firstForm = $forms->first();
+                    $commonData = [
+                        'code_task' => $firstForm->code_task,
+                        'id_brm' => $firstForm->id_brm,
+                        'brm' => $firstForm->brm,
+                        'task' => $firstForm->task,
+                        'sesuai_picklist' => $firstForm->sesuai_picklist,
+                        'remarks_picklist' => $firstForm->remarks_picklist,
+                        'sesuai_bets' => $firstForm->sesuai_bets,
+                        'remarks_bets' => $firstForm->remarks_bets,
+                        'mat_lengkap' => $firstForm->mat_lengkap,
+                        'remarks_mat' => $firstForm->remarks_mat,
+                        'task_id' => $firstForm->task_id,
+                        'created_at' => $firstForm->created_at,
+                        'updated_at' => $firstForm->updated_at
+                    ];
+                }
+
+                return response()->json([
+                    'common_data' => $commonData,
+                    'materials' => $groupedForms
+                ]);
+            } else {
+                // Get a specific form by its ID
+                $form = FormCAssySyringe::with(['material', 'task', 'brm'])
+                    ->findOrFail($id);
+
+                return response()->json([
+                    'data' => $form
+                ]);
+            }
+        } catch (\Exception $e) {
+            \Log::error('Error retrieving Form C Assy Syringe: ' . $e->getMessage());
+            return response()->json([
+                'message' => 'Failed to retrieve Form C data',
+                'error' => $e->getMessage()
+            ], 500);
         }
-        
-        return response()->json([
-            'common_data' => $commonData,
-            'materials' => $groupedForms
-        ]);
     }
 
     /**
@@ -230,7 +265,7 @@ class FormCAssySyringeController extends Controller
             ->with(['material'])
             ->orderBy('created_at', 'desc')
             ->get();
-            
+
         return response()->json($materials);
     }
 
@@ -282,24 +317,24 @@ class FormCAssySyringeController extends Controller
         try {
             // Find the task record
             $taskRecord = FormCAssySyringe::where('task_id', $id)->first();
-            
+
             if (!$taskRecord) {
                 return response()->json(['message' => 'Task not found'], 404);
             }
-            
+
             // Update common fields
             $commonFields = [
                 'code_task', 'id_brm', 'sesuai_picklist', 'remarks_picklist',
                 'sesuai_bets', 'remarks_bets', 'mat_lengkap', 'remarks_mat', 'task_id'
             ];
-            
+
             $updateData = array_intersect_key($request->all(), array_flip($commonFields));
-            
+
             if (!empty($updateData)) {
                 // Update all records for this task with common data
                 FormCAssySyringe::where('task_id', $id)->update($updateData);
             }
-            
+
             // Handle materials updates if present
             $updatedRecords = [];
             if ($request->has('materials')) {
@@ -330,7 +365,7 @@ class FormCAssySyringeController extends Controller
                             'task_id' => $id
                         ]);
                         $updatedRecords[] = $newRecord;
-                        
+
                         // Log the new material addition
                         Log::create([
                             'action' => 'UPDATE FORM C ASSY SYRINGE - ADD MATERIAL',
@@ -346,9 +381,9 @@ class FormCAssySyringeController extends Controller
                     }
                 }
             }
-            
+
             \DB::commit();
-            
+
             return response()->json([
                 'message' => 'Form updated successfully',
                 'data' => $updatedRecords
@@ -356,7 +391,7 @@ class FormCAssySyringeController extends Controller
         } catch (\Exception $e) {
             \DB::rollBack();
             \Log::error('Error updating form C: ' . $e->getMessage());
-            
+
             return response()->json([
                 'message' => 'Failed to update form',
                 'error' => $e->getMessage()
@@ -374,9 +409,9 @@ class FormCAssySyringeController extends Controller
             $taskId = $material->task_id;
             $materialId = $material->id_mat;
             $batchNo = $material->batch_no;
-            
+
             $material->delete();
-            
+
             // Log the deletion
             Log::create([
                 'action' => 'DELETE FORM C ASSY SYRINGE MATERIAL',
@@ -389,13 +424,13 @@ class FormCAssySyringeController extends Controller
                     'batch_no' => $batchNo,
                 ]),
             ]);
-            
+
             return response()->json([
                 'message' => 'Material entry deleted successfully'
             ]);
         } catch (\Exception $e) {
             \Log::error('Error deleting form C material: ' . $e->getMessage());
-            
+
             return response()->json([
                 'message' => 'Failed to delete material entry',
                 'error' => $e->getMessage()
@@ -403,22 +438,4 @@ class FormCAssySyringeController extends Controller
         }
     }
 
-    // In your Laravel controller
-    public function getMaterialsByCodes(Request $request)
-    {
-        $codes = explode(',', $request->query('codes'));
-
-        $materials = MasterMaterial::whereIn('material_code', $codes)
-            ->get()
-            ->map(function($material) {
-                return [
-                    'id' => $material->id,
-                    'material_code' => $material->material_code,
-                    'material_name' => $material->material_name,
-                    // Add other fields you need
-                ];
-            });
-
-        return response()->json($materials);
-    }
 }

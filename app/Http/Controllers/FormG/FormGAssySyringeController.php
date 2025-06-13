@@ -1,0 +1,429 @@
+<?php
+
+namespace App\Http\Controllers\FormG;
+
+use App\Http\Controllers\Controller;
+use App\Models\FormG\FormGAssySyringe;
+use App\Models\Log;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
+
+class FormGAssySyringeController extends Controller
+{
+    /**
+     * Display a listing of the resource.
+     */
+    public function index()
+    {
+        $forms = FormGAssySyringe::with(['task'])->get();
+
+        $formattedForms = [];
+        foreach ($forms as $form) {
+            $formattedForms[] = $this->formatFormData($form);
+        }
+
+        return response()->json($formattedForms);
+    }
+
+    /**
+     * Store a newly created resource in storage.
+     */
+    public function store(Request $request)
+    {
+        // Log the incoming request for debugging
+        \Log::info('Form G Assy Syringe Request:', $request->except(['signed_1', 'signed_2', 'signed_3']));
+
+        $validator = Validator::make($request->all(), [
+            'remarks' => 'nullable|string|max:255',
+            'signed_1' => 'nullable',
+            'inisial_1' => 'nullable|string|max:3',
+            'signed_2' => 'nullable',
+            'inisial_2' => 'nullable|string|max:3',
+            'signed_3' => 'nullable',
+            'inisial_3' => 'nullable|string|max:3',
+            'task_code' => 'required|string|max:255',
+            'task_id' => 'required|exists:tasks,id',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'message' => 'Validation failed',
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        \DB::beginTransaction();
+
+        try {
+            $formData = [
+                'remarks' => $request->remarks,
+                'inisial_1' => $request->inisial_1,
+                'inisial_2' => $request->inisial_2,
+                'inisial_3' => $request->inisial_3,
+                'task_code' => $request->task_code,
+                'task_id' => $request->task_id,
+            ];
+
+            // Process signed_1 data
+            if ($request->hasFile('signed_1')) {
+                $formData['signed_1'] = pg_escape_bytea(file_get_contents($request->file('signed_1')->getRealPath()));
+            } elseif ($request->has('signed_1') && is_string($request->signed_1) && !empty($request->signed_1)) {
+                // Handle base64 encoded string
+                $base64String = $request->signed_1;
+                // Remove data:image/png;base64, prefix if present
+                if (strpos($base64String, 'data:image') !== false) {
+                    $base64String = explode(',', $base64String)[1];
+                }
+                $formData['signed_1'] = pg_escape_bytea(base64_decode($base64String));
+            }
+
+            // Process signed_2 data
+            if ($request->hasFile('signed_2')) {
+                $formData['signed_2'] = pg_escape_bytea(file_get_contents($request->file('signed_2')->getRealPath()));
+            } elseif ($request->has('signed_2') && is_string($request->signed_2) && !empty($request->signed_2)) {
+                // Handle base64 encoded string
+                $base64String = $request->signed_2;
+                // Remove data:image/png;base64, prefix if present
+                if (strpos($base64String, 'data:image') !== false) {
+                    $base64String = explode(',', $base64String)[1];
+                }
+                $formData['signed_2'] = pg_escape_bytea(base64_decode($base64String));
+            }
+
+            // Process signed_3 data
+            if ($request->hasFile('signed_3')) {
+                $formData['signed_3'] = pg_escape_bytea(file_get_contents($request->file('signed_3')->getRealPath()));
+            } elseif ($request->has('signed_3') && is_string($request->signed_3) && !empty($request->signed_3)) {
+                // Handle base64 encoded string
+                $base64String = $request->signed_3;
+                // Remove data:image/png;base64, prefix if present
+                if (strpos($base64String, 'data:image') !== false) {
+                    $base64String = explode(',', $base64String)[1];
+                }
+                $formData['signed_3'] = pg_escape_bytea(base64_decode($base64String));
+            }
+
+            $form = FormGAssySyringe::create($formData);
+
+            // Log the submission
+            Log::create([
+                'action' => 'ADD FORM G ASSY SYRINGE',
+                'created_date' => now(),
+                'created_by' => $request->user() ? $request->user()->nik : 'system',
+                'created_at' => now(),
+                'task_id' => $request->task_id,
+                'details' => json_encode([
+                    'form_id' => $form->id,
+                ]),
+            ]);
+
+            \DB::commit();
+
+            // Return a simplified response without binary data
+            return response()->json([
+                'message' => 'Form submitted successfully',
+                'data' => [
+                    'id' => $form->id,
+                    'remarks' => $form->remarks,
+                    'inisial_1' => $form->inisial_1,
+                    'inisial_2' => $form->inisial_2,
+                    'inisial_3' => $form->inisial_3,
+                    'task_code' => $form->task_code,
+                    'task_id' => $form->task_id,
+                    'created_at' => $form->created_at,
+                    'updated_at' => $form->updated_at,
+                ]
+            ], 201);
+        } catch (\Exception $e) {
+            \DB::rollBack();
+            \Log::error('Error submitting form G: ' . $e->getMessage());
+            \Log::error('Error trace: ' . $e->getTraceAsString());
+
+            return response()->json([
+                'message' => 'Failed to submit form',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Display the specified resource.
+     */
+    public function show($id, Request $request)
+    {
+        try {
+            $isTaskId = $request->query('is_task_id', true);
+
+            if ($isTaskId) {
+                // Get all records for the task
+                $forms = FormGAssySyringe::where('task_id', $id)
+                    ->with(['task'])
+                    ->orderBy('id', 'desc')
+                    ->get();
+
+                if ($forms->isEmpty()) {
+                    return response()->json([
+                        'message' => 'No Form G Assy Syringe records found for this task',
+                        'data' => null
+                    ], 404);
+                }
+
+                $formattedForms = [];
+                foreach ($forms as $form) {
+                    $formattedForms[] = $this->formatFormData($form);
+                }
+
+                return response()->json([
+                    'message' => 'Form G Assy Syringe records retrieved successfully',
+                    'data' => $formattedForms
+                ]);
+            } else {
+                // Get a specific form by its ID
+                $form = FormGAssySyringe::with(['task'])->findOrFail($id);
+
+                return response()->json([
+                    'message' => 'Form G Assy Syringe record retrieved successfully',
+                    'data' => $this->formatFormData($form)
+                ]);
+            }
+        } catch (\Exception $e) {
+            \Log::error('Error retrieving Form G: ' . $e->getMessage());
+            return response()->json([
+                'message' => 'Failed to retrieve form',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Update the specified resource in storage.
+     */
+    public function update(Request $request, $id)
+    {
+        // Log the incoming request for debugging
+        \Log::info('Form G Assy Syringe Update Request:', $request->except(['signed_1', 'signed_2', 'signed_3']));
+
+        $form = FormGAssySyringe::findOrFail($id);
+
+        $validator = Validator::make($request->all(), [
+            'remarks' => 'nullable|string|max:255',
+            'signed_1' => 'nullable',
+            'inisial_1' => 'nullable|string|max:3',
+            'signed_2' => 'nullable',
+            'inisial_2' => 'nullable|string|max:3',
+            'signed_3' => 'nullable',
+            'inisial_3' => 'nullable|string|max:3',
+            'task_code' => 'nullable|string|max:255',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'message' => 'Validation failed',
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        \DB::beginTransaction();
+
+        try {
+            $updateData = [];
+
+            // Update remarks if provided
+            if ($request->has('remarks')) {
+                $updateData['remarks'] = $request->remarks;
+            }
+
+            // Update initials if provided
+            if ($request->has('inisial_1')) {
+                $updateData['inisial_1'] = $request->inisial_1;
+            }
+
+            if ($request->has('inisial_2')) {
+                $updateData['inisial_2'] = $request->inisial_2;
+            }
+
+            if ($request->has('inisial_3')) {
+                $updateData['inisial_3'] = $request->inisial_3;
+            }
+
+            // Process signed_1 data
+            if ($request->hasFile('signed_1')) {
+                $updateData['signed_1'] = pg_escape_bytea(file_get_contents($request->file('signed_1')->getRealPath()));
+            } elseif ($request->has('signed_1') && is_string($request->signed_1) && !empty($request->signed_1)) {
+                // Handle base64 encoded string
+                $base64String = $request->signed_1;
+                // Remove data:image/png;base64, prefix if present
+                if (strpos($base64String, 'data:image') !== false) {
+                    $base64String = explode(',', $base64String)[1];
+                }
+                $updateData['signed_1'] = pg_escape_bytea(base64_decode($base64String));
+            }
+
+            // Process signed_2 data
+            if ($request->hasFile('signed_2')) {
+                $updateData['signed_2'] = pg_escape_bytea(file_get_contents($request->file('signed_2')->getRealPath()));
+            } elseif ($request->has('signed_2') && is_string($request->signed_2) && !empty($request->signed_2)) {
+                // Handle base64 encoded string
+                $base64String = $request->signed_2;
+                // Remove data:image/png;base64, prefix if present
+                if (strpos($base64String, 'data:image') !== false) {
+                    $base64String = explode(',', $base64String)[1];
+                }
+                $updateData['signed_2'] = pg_escape_bytea(base64_decode($base64String));
+            }
+
+            // Process signed_3 data
+            if ($request->hasFile('signed_3')) {
+                $updateData['signed_3'] = pg_escape_bytea(file_get_contents($request->file('signed_3')->getRealPath()));
+            } elseif ($request->has('signed_3') && is_string($request->signed_3) && !empty($request->signed_3)) {
+                // Handle base64 encoded string
+                $base64String = $request->signed_3;
+                // Remove data:image/png;base64, prefix if present
+                if (strpos($base64String, 'data:image') !== false) {
+                    $base64String = explode(',', $base64String)[1];
+                }
+                $updateData['signed_3'] = pg_escape_bytea(base64_decode($base64String));
+            }
+
+            // Update task_code if provided
+            if ($request->has('task_code')) {
+                $updateData['task_code'] = $request->task_code;
+            }
+
+            $form->update($updateData);
+
+            // Log the update
+            Log::create([
+                'action' => 'UPDATE FORM G ASSY SYRINGE',
+                'created_date' => now(),
+                'created_by' => $request->user() ? $request->user()->nik : 'system',
+                'created_at' => now(),
+                'task_id' => $form->task_id,
+                'details' => json_encode([
+                    'form_id' => $form->id,
+                ]),
+            ]);
+
+            \DB::commit();
+
+            // Return a simplified response without binary data
+            return response()->json([
+                'message' => 'Form updated successfully',
+                'data' => [
+                    'id' => $form->id,
+                    'remarks' => $form->remarks,
+                    'inisial_1' => $form->inisial_1,
+                    'inisial_2' => $form->inisial_2,
+                    'inisial_3' => $form->inisial_3,
+                    'task_code' => $form->task_code,
+                    'task_id' => $form->task_id,
+                    'created_at' => $form->created_at,
+                    'updated_at' => $form->updated_at,
+                ]
+            ]);
+        } catch (\Exception $e) {
+            \DB::rollBack();
+            \Log::error('Error updating form G: ' . $e->getMessage());
+
+            return response()->json([
+                'message' => 'Failed to update form',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Remove the specified resource from storage.
+     */
+    public function destroy(Request $request, $id)
+    {
+        $form = FormGAssySyringe::findOrFail($id);
+
+        \DB::beginTransaction();
+
+        try {
+            // Log the deletion
+            Log::create([
+                'action' => 'DELETE FORM G ASSY SYRINGE',
+                'created_date' => now(),
+                'created_by' => $request->user() ? $request->user()->nik : 'system',
+                'created_at' => now(),
+                'task_id' => $form->task_id,
+                'details' => json_encode([
+                    'form_id' => $id,
+                ]),
+            ]);
+
+            $form->delete();
+
+            \DB::commit();
+
+            return response()->json([
+                'message' => 'Form deleted successfully'
+            ]);
+        } catch (\Exception $e) {
+            \DB::rollBack();
+            \Log::error('Error deleting form G: ' . $e->getMessage());
+
+            return response()->json([
+                'message' => 'Failed to delete form',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Format form data for API responses
+     * Handles binary data properly and adds necessary attributes
+     */
+    private function formatFormData($form)
+    {
+        $formattedData = [
+            'id' => $form->id,
+            'remarks' => $form->remarks,
+            'inisial_1' => $form->inisial_1,
+            'inisial_2' => $form->inisial_2,
+            'inisial_3' => $form->inisial_3,
+            'task_code' => $form->task_code,
+            'task_id' => $form->task_id,
+            'has_signed_1' => $form->has_signed_1,
+            'has_signed_2' => $form->has_signed_2,
+            'has_signed_3' => $form->has_signed_3,
+            'created_at' => $form->created_at,
+            'updated_at' => $form->updated_at,
+            'task' => $form->task ? [
+                'id' => $form->task->id,
+                'code' => $form->task->code,
+                'name' => $form->task->name,
+                'status' => $form->task->status,
+            ] : null,
+        ];
+
+        // Add base64 encoded signatures if they exist
+        if (!empty($form->signed_1)) {
+            // Handle both string and resource types
+            if (is_resource($form->signed_1)) {
+                // If it's a resource (stream), read from it
+                $binaryData = stream_get_contents($form->signed_1);
+            } else {
+                // If it's already a string, handle potential pg_escape_bytea encoding
+                $binaryData = function_exists('pg_unescape_bytea') ? pg_unescape_bytea($form->signed_1) : $form->signed_1;
+            }
+            $formattedData['signed_1'] = 'data:image/png;base64,' . base64_encode($binaryData);
+        }
+
+        if (!empty($form->signed_2)) {
+            // Handle both string and resource types
+            if (is_resource($form->signed_2)) {
+                // If it's a resource (stream), read from it
+                $binaryData = stream_get_contents($form->signed_2);
+            } else {
+                // If it's already a string, handle potential pg_escape_bytea encoding
+                $binaryData = function_exists('pg_unescape_bytea') ? pg_unescape_bytea($form->signed_2) : $form->signed_2;
+            }
+            $formattedData['signed_2'] = 'data:image/png;base64,' . base64_encode($binaryData);
+        }
+
+        return $formattedData;
+    }
+}
