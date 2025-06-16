@@ -23,6 +23,10 @@ use App\Http\Controllers\FormC\FormCInjectionController;
 use App\Http\Controllers\FormC\FormCNeedleAssyController;
 
 use App\Http\Controllers\FormF\FormFAssySyringeController;
+use App\Http\Controllers\FormF\FormFBlisterController;
+use App\Http\Controllers\FormF\FormFInjectionController;
+use App\Http\Controllers\FormF\FormFNeedleAssyController;
+
 use App\Http\Controllers\FormG\FormGAssySyringeController;
 use App\Http\Controllers\FormG\FormGBlisterController;
 use App\Http\Controllers\FormG\FormGInjectionController;
@@ -48,10 +52,16 @@ Route::controller(UserController::class)->group(function () {
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/tasks', [TaskController::class, 'index_task']);
-    Route::get('/tasks/{code}', [TaskController::class, 'show_task']);
+    Route::get('/tasks/{id}', [TaskController::class, 'show_task']);
     Route::post('/tasks', [TaskController::class, 'store_task']);
-    Route::put('/tasks/{code}/{status}', [TaskController::class, 'updateStatus_task']);
-    Route::delete('/tasks/{code}', [TaskController::class, 'destroy_task']);
+    Route::put('/tasks/{id}/{status}', [TaskController::class, 'updateStatus_task']);
+    Route::delete('/tasks/{id}', [TaskController::class, 'destroy_task']);
+
+    // New routes for task reassignment and verification
+    Route::put('/tasks/{id}/reassign', [TaskController::class, 'reassignTask']);
+    Route::put('/tasks/{id}/submit-verification', [TaskController::class, 'submitForVerification']);
+    Route::get('/tasks/my-tasks', [TaskController::class, 'getMyTasks']);
+    Route::post('/head-section/by-department', [TaskController::class, 'findHeadSectionByDept']);
 });
 
 Route::get('/brms', [BRMController::class, 'index']);
@@ -132,6 +142,24 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/form-f-assy-syringe/{id}', [FormFAssySyringeController::class, 'show']);
     Route::put('/form-f-assy-syringe/{id}', [FormFAssySyringeController::class, 'update']);
     Route::delete('/form-f-assy-syringe/{id}', [FormFAssySyringeController::class, 'destroy']);
+
+    Route::get('/form-f-blister', [FormFBlisterController::class, 'index']);
+    Route::post('/form-f-blister', [FormFBlisterController::class, 'store']);
+    Route::get('/form-f-blister/{id}', [FormFBlisterController::class, 'show']);
+    Route::put('/form-f-blister/{id}', [FormFBlisterController::class, 'update']);
+    Route::delete('/form-f-blister/{id}', [FormFBlisterController::class, 'destroy']);
+
+    Route::get('/form-f-injection', [FormFInjectionController::class, 'index']);
+    Route::post('/form-f-injection', [FormFInjectionController::class, 'store']);
+    Route::get('/form-f-injection/{id}', [FormFInjectionController::class, 'show']);
+    Route::put('/form-f-injection/{id}', [FormFInjectionController::class, 'update']);
+    Route::delete('/form-f-injection/{id}', [FormFInjectionController::class, 'destroy']);
+
+    Route::get('/form-f-needle-assy', [FormFNeedleAssyController::class, 'index']);
+    Route::post('/form-f-needle-assy', [FormFNeedleAssyController::class, 'store']);
+    Route::get('/form-f-needle-assy/{id}', [FormFNeedleAssyController::class, 'show']);
+    Route::put('/form-f-needle-assy/{id}', [FormFNeedleAssyController::class, 'update']);
+    Route::delete('/form-f-needle-assy/{id}', [FormFNeedleAssyController::class, 'destroy']);
 
     Route::get('/form-g-assy-syringe', [FormGAssySyringeController::class, 'index']);
     Route::post('/form-g-assy-syringe', [FormGAssySyringeController::class, 'store']);

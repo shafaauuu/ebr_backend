@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class Task extends Model {
     use HasFactory;
 
-    protected $fillable = ['code', 'task_name', 'status', 'assigned_by', 'assigned_to', 'id_brm'];
+    protected $fillable = ['status', 'assigned_by', 'assigned_to', 'id_brm', 'no_batch'];
 
     public function masterBrm()
     {
@@ -17,10 +17,10 @@ class Task extends Model {
 
 
     public function assignedBy() {
-        return $this->belongsTo(User::class, 'assigned_by');
+        return $this->belongsTo(User::class, 'assigned_by', 'nik');
     }
 
     public function assignedTo() {
-        return $this->belongsTo(User::class, 'assigned_to');
+        return $this->belongsTo(User::class, 'assigned_to', 'nik');
     }
 }

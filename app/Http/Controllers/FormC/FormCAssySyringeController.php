@@ -77,6 +77,7 @@ class FormCAssySyringeController extends Controller
             'materials.*.batch_no' => 'nullable|string|max:255',
             'materials.*.actual_qty' => 'required|integer|min:0',
             'materials.*.id_mat' => 'nullable',
+
             'sesuai_picklist' => 'required|boolean',
             'remarks_picklist' => 'nullable|string|max:255',
             'sesuai_bets' => 'required|boolean',
