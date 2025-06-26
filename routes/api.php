@@ -29,6 +29,7 @@ use App\Http\Controllers\FormD\DisplayMachineBlisterController;
 use App\Http\Controllers\FormD\DisplayMachineSgpController;
 use App\Http\Controllers\FormD\FormDMachineAssyController;
 use App\Http\Controllers\FormD\FormDMachineFcsShiController;
+use App\Http\Controllers\FormD\MaterialReconController;
 
 use App\Http\Controllers\FormE\FormEAssySyringeController;
 use App\Http\Controllers\FormE\FormEBlisterController;
@@ -211,6 +212,16 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/form-d-display/brm/{brmNo}', [FormDDisplayController::class, 'getDisplayDataByBrm']);
 
     Route::prefix('form-d')->group(function () {
+        // Material Reconciliation Routes - Place these specific routes FIRST
+        Route::get('/material-recon', [MaterialReconController::class, 'index']);
+        Route::post('/material-recon', [MaterialReconController::class, 'store']);
+        Route::get('/material-recon/{id}', [MaterialReconController::class, 'show']);
+        Route::put('/material-recon/{id}', [MaterialReconController::class, 'update']);
+        Route::delete('/material-recon/{id}', [MaterialReconController::class, 'destroy']);
+        Route::get('/tasks/{taskId}/materials/{matId}', [MaterialReconController::class, 'getMaterialsByMatId']);
+        Route::get('/tasks/{taskId}/child-materials/{materialCode}', [MaterialReconController::class, 'getChildMaterials']);
+
+        // Generic Form D routes - Place these AFTER the more specific routes
         Route::get('/', [FormDController::class, 'index']);
         Route::post('/', [FormDController::class, 'store']);
         Route::get('/{id}', [FormDController::class, 'show']);
