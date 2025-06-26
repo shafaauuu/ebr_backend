@@ -109,15 +109,49 @@ class TaskController extends Controller
         $task = Task::find($id);
         if (!$task) return response()->json(['message' => 'Task not found'], 404);
 
-        // Update the assigned_to field
-        $task->update([
-            'assigned_to' => $request->assigned_to
-        ]);
+        // Get the authenticated user
+        $user = $request->user();
+        
+        // If no authenticated user (when auth is disabled), use the assigned_to as the creator
+        $createdBy = $user ? $user->nik : $request->assigned_to;
+        
+        // Get the previous assignee for logging
+        $previousAssignee = $task->assigned_to;
 
-        return response()->json([
-            'message' => 'Task reassigned successfully',
-            'task' => $task
-        ], 200);
+        // Begin transaction
+        DB::beginTransaction();
+        
+        try {
+            // Update the assigned_to field
+            $task->update([
+                'assigned_to' => $request->assigned_to,
+                'updated_at' => now()
+            ]);
+            
+            // Create log entry for the task reassignment
+            \App\Models\Log::create([
+                'task_id' => $task->id,
+                'action' => "Task reassigned from user {$previousAssignee} to user {$request->assigned_to}",
+                'created_by' => $createdBy,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+            
+            DB::commit();
+            
+            return response()->json([
+                'message' => 'Task reassigned successfully',
+                'task' => $task
+            ], 200);
+            
+        } catch (\Exception $e) {
+            DB::rollBack();
+            
+            return response()->json([
+                'message' => 'Failed to reassign task',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 
     /**
@@ -227,5 +261,84 @@ class TaskController extends Controller
             });
 
         return response()->json($tasks, 200);
+    }
+
+    /**
+     * Transfer tasks to users in a selected shift group
+     * 
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function transferTasksToShiftGroup(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'tasks' => 'required|array',
+            'tasks.*' => 'exists:tasks,id',
+            'shift_group' => 'required_without:group|string|max:1',
+            'group' => 'required_without:shift_group|string|max:1',
+            'assigned_to' => 'required|exists:users,nik',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json($validator->errors(), 400);
+        }
+
+        // Get the authenticated user
+        $user = $request->user();
+        
+        // If no authenticated user (when auth is disabled), use the assigned_to as the creator
+        $createdBy = $user ? $user->nik : $request->assigned_to;
+        
+        // Get the shift group (either from shift_group or group parameter)
+        $shiftGroup = $request->shift_group ?? $request->group;
+        
+        // Begin transaction
+        DB::beginTransaction();
+        
+        try {
+            // Update all specified tasks
+            foreach ($request->tasks as $taskId) {
+                $task = Task::find($taskId);
+                
+                // Skip if task not found
+                if (!$task) {
+                    continue;
+                }
+                
+                // Get the previous assignee for logging
+                $previousAssignee = $task->assigned_to;
+                
+                // Update the task
+                $task->update([
+                    'assigned_to' => $request->assigned_to,
+                    'updated_at' => now()
+                ]);
+                
+                // Create log entry for the task transfer
+                \App\Models\Log::create([
+                    'task_id' => $task->id,
+                    'action' => "Task transferred from user {$previousAssignee} to user {$request->assigned_to} in shift group {$shiftGroup}",
+                    'created_by' => $createdBy,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+            }
+            
+            DB::commit();
+            
+            return response()->json([
+                'message' => 'Tasks successfully transferred to the next shift group',
+                'shift_group' => $shiftGroup,
+                'assigned_to' => $request->assigned_to
+            ], 200);
+            
+        } catch (\Exception $e) {
+            DB::rollBack();
+            
+            return response()->json([
+                'message' => 'Failed to transfer tasks',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 }

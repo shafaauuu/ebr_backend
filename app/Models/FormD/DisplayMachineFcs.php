@@ -1,0 +1,162 @@
+<?php
+
+namespace App\Models\FormD;
+
+use App\Models\MasterMachine;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+
+class DisplayMachineFcs extends Model
+{
+    protected $table = 'display_machine_fcs';
+    protected $primaryKey = 'id';
+    public $timestamps = true;
+    
+    protected $fillable = [
+        'machine_id',
+        'material_type',
+        'brm_no',
+        'open_position_slow',
+        'open_position_fast',
+        'open_position_mid',
+        'open_position_dec',
+        'open_speed_slow',
+        'open_speed_fast',
+        'open_speed_mid',
+        'open_speed_dec',
+        'open_pressure_slow',
+        'open_pressure_fast',
+        'open_pressure_mid',
+        'open_pressure_dec',
+        'close_position_slow',
+        'close_position_fast',
+        'close_position_mid',
+        'close_position_dec',
+        'close_speed_slow',
+        'close_speed_fast',
+        'close_speed_mid',
+        'close_speed_dec',
+        'close_pressure_slow',
+        'close_pressure_fast',
+        'close_pressure_mid',
+        'close_pressure_dec',
+        'ejector_position_ret2',
+        'ejector_position_ret1',
+        'ejector_position_adv2',
+        'ejector_position_adv1',
+        'ejector_speed_ret2',
+        'ejector_speed_ret1',
+        'ejector_speed_adv2',
+        'ejector_speed_adv1',
+        'ejector_pressure_ret2',
+        'ejector_pressure_ret1',
+        'ejector_pressure_adv2',
+        'ejector_pressure_adv1',
+        'temperature_sv_sect1',
+        'temperature_sv_sect2',
+        'temperature_sv_sect3',
+        'temperature_sv_sect4',
+        'temperature_sv_sect5',
+        'temperature_sv_sect6',
+        'temperature_pv_sect1',
+        'temperature_pv_sect2',
+        'temperature_pv_sect3',
+        'temperature_pv_sect4',
+        'temperature_pv_sect5',
+        'temperature_pv_sect6',
+        'temperature_pre_sect1',
+        'temperature_pre_sect2',
+        'temperature_pre_sect3',
+        'temperature_pre_sect4',
+        'temperature_pre_sect5',
+        'temperature_pre_sect6',
+        'temperature_max_sect1',
+        'temperature_max_sect2',
+        'temperature_max_sect3',
+        'temperature_max_sect4',
+        'temperature_max_sect5',
+        'temperature_max_sect6',
+        'temperature_low_sect1',
+        'temperature_low_sect2',
+        'temperature_low_sect3',
+        'temperature_low_sect4',
+        'temperature_low_sect5',
+        'temperature_low_sect6',
+        'filling_position_inj5',
+        'filling_position_inj4',
+        'filling_position_inj3',
+        'filling_position_inj2',
+        'filling_position_inj1',
+        'filling_velocity_inj5',
+        'filling_velocity_inj4',
+        'filling_velocity_inj3',
+        'filling_velocity_inj2',
+        'filling_velocity_inj1',
+        'filling_pressure_inj5',
+        'filling_pressure_inj4',
+        'filling_pressure_inj3',
+        'filling_pressure_inj2',
+        'filling_pressure_inj1',
+        'filling_time_inj5',
+        'filling_time_inj4',
+        'filling_time_inj3',
+        'filling_time_inj2',
+        'filling_time_inj1',
+        'holding_speed_hdp4',
+        'holding_speed_hdp3',
+        'holding_speed_hdp2',
+        'holding_speed_hdp1',
+        'holding_pressure_hdp4',
+        'holding_pressure_hdp3',
+        'holding_pressure_hdp2',
+        'holding_pressure_hdp1',
+        'holding_time_hdp4',
+        'holding_time_hdp3',
+        'holding_time_hdp2',
+        'holding_time_hdp1',
+        'charging_back_pre',
+        'charging_back_charge1',
+        'charging_back_charge2',
+        'charging_back_charge3',
+        'charging_back_post',
+        'charging_speed_pre',
+        'charging_speed_charge1',
+        'charging_speed_charge2',
+        'charging_speed_charge3',
+        'charging_speed_post',
+        'charging_pressure_pre',
+        'charging_pressure_charge1',
+        'charging_pressure_charge2',
+        'charging_pressure_charge3',
+        'charging_pressure_post',
+        'charging_position_pre',
+        'charging_position_charge1',
+        'charging_position_charge2',
+        'charging_position_charge3',
+        'charging_position_post',
+        'purge_velocity_slow',
+        'purge_velocity_fast',
+        'purge_velocity_back',
+        'purge_pressure_slow',
+        'purge_pressure_fast',
+        'purge_pressure_back',
+        'purge_position_slow',
+        'purge_position_fast',
+        'purge_position_back'
+    ];
+
+    protected $casts = [
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime',
+    ];
+
+    public function formDDisplay(): BelongsTo
+    {
+        return $this->belongsTo(FormDDisplay::class, 'machine_id', 'machine_id');
+    }
+
+    public function machine(): BelongsTo
+    {
+        return $this->belongsTo(MasterMachine::class, 'machine_id', 'id_machine');
+    }
+}

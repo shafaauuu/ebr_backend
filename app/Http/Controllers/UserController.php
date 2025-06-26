@@ -127,5 +127,39 @@ class UserController extends Controller
         return response()->json(['message' => 'Logged out successfully'], 200);
     }
 
+    /**
+     * Get users by shift group
+     * 
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function getUsersByShiftGroup(Request $request)
+    {
+        $request->validate([
+            'group' => 'required|string|max:1',
+        ]);
 
+        $users = User::where('group', $request->group)
+            ->select('nik', 'first_name', 'last_name', 'email', 'position', 'div', 'dept', 'inisial', 'group')
+            ->get();
+
+        return response()->json($users, 200);
+    }
+
+    /**
+     * Get all available shift groups
+     * 
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function getShiftGroups()
+    {
+        $groups = User::select('group')
+            ->distinct()
+            ->whereNotNull('group')
+            ->where('group', '!=', '')
+            ->orderBy('group')
+            ->pluck('group');
+
+        return response()->json($groups, 200);
+    }
 }
