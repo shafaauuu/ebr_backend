@@ -3,6 +3,12 @@
 namespace App\Http\Controllers\FormD;
 
 use App\Http\Controllers\Controller;
+use App\Models\FormB\FormBAssySyringe;
+use App\Models\FormB\FormBBlister;
+use App\Models\FormB\FormBInjection;
+use App\Models\FormB\FormBNeedleAssy;
+use App\Models\FormD\DisplayMachineBlister;
+use App\Models\FormD\DisplayMachineSgp;
 use App\Models\FormD\FormD;
 use App\Models\FormD\FormDDisplay;
 use App\Models\FormD\DisplayMachineAssy;
@@ -11,11 +17,15 @@ use App\Models\FormD\DisplayMachineFcsShi;
 use App\Models\FormD\DisplayMachineShi1;
 use App\Models\FormD\DisplayMachineShi2;
 use App\Models\FormD\MachineAssy;
+use App\Models\FormD\MachineBlister;
 use App\Models\FormD\MachineFcs;
 use App\Models\FormD\MachineFcsShi;
 use App\Models\FormD\MachineShi1;
 use App\Models\FormD\MachineShi2;
 use App\Models\Log;
+use App\Models\MasterBrm;
+use App\Models\MasterMachine;
+use App\Models\Task;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
@@ -101,7 +111,61 @@ class FormDController extends Controller
             ], 500);
         }
     }
+    public function task($taskId) {
+        $table = [
+            [FormBAssySyringe::class, "assysyringe"],
+            [FormBBlister::class, "blister"],
+            [FormBInjection::class, "injection"],
+            [FormBNeedleAssy::class, "needleassy"]
+        ];
+        $form_b_data = null;
+        $form_b_type = "";
 
+        foreach ($table as $item) {
+            $form_b_data = $item[0]::where('task_id', $taskId)->first();
+            if ($form_b_data) {
+                $form_b_type = $item[1];
+                break;
+            }
+        }
+
+
+        if($form_b_data == null) throw new \Exception('Form b must be filled');
+        $machine = MasterMachine::where('machine_code', $form_b_data->machine_id)->first();
+        if (!$machine) {
+            return response()->json([
+                'message' => 'Machine not found for the given machine code.',
+            ], 404);
+        }
+        $displayTables = [
+            [DisplayMachineAssy::class, "assy",MachineAssy::class],
+            [DisplayMachineBlister::class,"blister", MachineBlister::class],
+            [DisplayMachineFcs::class,"fcs"],
+            [DisplayMachineFcsShi::class,"fcs_shi"],
+            [DisplayMachineSgp::class,"sgp"],
+            [DisplayMachineShi1::class,"shi_1"],
+            [DisplayMachineShi2::class,"shi_2"]
+        ];
+
+        foreach ($displayTables as $model) {
+            $display = $model[0]::where('machine_id', $machine->id_machine)
+                ->with(['machine'])
+                ->first();
+
+            if ($display) {
+
+
+                $display["form_type"] = $form_b_type;
+                $display["machine_type"] = $model[1];
+                $display["form_value"] = FormD::where('task_id', $taskId)
+                    ->orderBy('id_form_d', 'desc')
+                    ->first();
+                $display["machine_value"] = $model[2]::where('form_d_id', $display["form_value"]->id_form_d)->first();
+
+                return response()->json($display);
+            }
+        }
+    }
     /**
      * Display the specified resource.
      */

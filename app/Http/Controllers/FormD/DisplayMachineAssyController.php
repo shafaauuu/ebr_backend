@@ -3,9 +3,10 @@
 namespace App\Http\Controllers\FormD;
 
 use App\Http\Controllers\Controller;
+use App\Models\FormB\FormBAssySyringe;
 use App\Models\FormD\DisplayMachineAssy;
-use App\Models\FormD\FormDDisplay;
 use App\Models\Log;
+use App\Models\MasterMachine;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
@@ -48,19 +49,9 @@ class DisplayMachineAssyController extends Controller
         DB::beginTransaction();
 
         try {
-            // Check if entry already exists for this machine_id and brm_no
-            $existingEntry = DisplayMachineAssy::where('machine_id', $request->machine_id)
-                ->where('brm_no', $request->brm_no)
-                ->first();
-                
-            if ($existingEntry) {
-                // Update existing entry
-                $existingEntry->update($request->all());
-                $display = $existingEntry;
-            } else {
-                // Create new entry
+
                 $display = DisplayMachineAssy::create($request->all());
-            }
+
 
             // Log the submission
             Log::create([
@@ -103,7 +94,7 @@ class DisplayMachineAssyController extends Controller
                 $display = DisplayMachineAssy::where('brm_no', $id)
                     ->with(['formDDisplay', 'machine'])
                     ->first();
-                
+
                 if (!$display) {
                     return response()->json([
                         'message' => 'No Display Machine Assy found for this BRM',
@@ -115,7 +106,7 @@ class DisplayMachineAssyController extends Controller
                 $display = DisplayMachineAssy::where('machine_id', $id)
                     ->with(['formDDisplay', 'machine'])
                     ->first();
-                
+
                 if (!$display) {
                     return response()->json([
                         'message' => 'No Display Machine Assy found for this machine',
@@ -183,6 +174,34 @@ class DisplayMachineAssyController extends Controller
             if ($request->has('silicon_spray')) {
                 $updateData['silicon_spray'] = $request->silicon_spray;
             }
+            // load_barrel
+            if ($request->has('load_barrel')) {
+                $updateData['load_barrel'] = $request->load_barrel;
+            }
+            // load_gasket, load_plunger
+            if ($request->has('load_gasket')) {
+                $updateData['load_gasket'] = $request->load_gasket;
+            }
+            if ($request->has('load_plunger')) {
+                $updateData['load_plunger'] = $request->load_plunger;
+            }
+            // actual_running
+            if ($request->has('actual_running')) {
+                $updateData['actual_running'] = $request->actual_running;
+            }
+            // run_awal
+            if ($request->has('run_awal')) {
+                $updateData['run_awal'] = $request->run_awal;
+            }
+            // defect
+            if ($request->has('defect')) {
+                $updateData['defect'] = $request->defect;
+            }
+            // goods_ok
+            if ($request->has('goods_ok')) {
+                $updateData['goods_ok'] = $request->goods_ok;
+            }
+
 
             $display->update($updateData);
 
@@ -227,7 +246,7 @@ class DisplayMachineAssyController extends Controller
             $display = DisplayMachineAssy::where('machine_id', $machineId)
                 ->where('brm_no', $brmNo)
                 ->firstOrFail();
-                
+
             $display->delete();
 
             // Log the deletion
@@ -258,7 +277,31 @@ class DisplayMachineAssyController extends Controller
             ], 500);
         }
     }
-    
+    public function getform($taskId)
+    {
+        try {
+            $form_b_data = FormBAssySyringe::where('task_id', $taskId)->first();
+
+            if($form_b_data == null) throw new \Exception('Form b must be filled');
+            $machine = MasterMachine::where('machine_code', $form_b_data->machine_id)->first();
+            if (!$machine) {
+                return response()->json([
+                    'message' => 'Machine not found for the given machine code.',
+                ], 404);
+            }
+            $display = DisplayMachineAssy::where('machine_id', $machine->id_machine)
+                ->with(['machine'])
+                ->first();
+            return response()->json($display);
+        } catch (\Exception $e) {
+            \Log::error('Error retrieving Display Machine Assy: ' . $e->getMessage());
+            return response()->json([
+                'message' => 'Failed to retrieve Display Machine Assy',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
     /**
      * Get display data by BRM number
      */
@@ -268,14 +311,14 @@ class DisplayMachineAssyController extends Controller
             $display = DisplayMachineAssy::where('brm_no', $brmNo)
                 ->with(['formDDisplay', 'machine'])
                 ->first();
-            
+
             if (!$display) {
                 return response()->json([
                     'message' => 'No Display Machine Assy found for this BRM',
                     'data' => null
                 ], 404);
             }
-            
+
             return response()->json([
                 'message' => 'Display Machine Assy retrieved successfully',
                 'data' => $display

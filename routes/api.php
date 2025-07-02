@@ -18,6 +18,8 @@ use App\Http\Controllers\FormC\FormCBlisterController;
 use App\Http\Controllers\FormC\FormCInjectionController;
 use App\Http\Controllers\FormC\FormCNeedleAssyController;
 
+use App\Http\Controllers\FormD\FormDAssySyringeController;
+use App\Http\Controllers\FormD\FormDBlisterController;
 use App\Http\Controllers\FormD\FormDController;
 use App\Http\Controllers\FormD\FormDDisplayController;
 use App\Http\Controllers\FormD\DisplayMachineAssyController;
@@ -27,8 +29,10 @@ use App\Http\Controllers\FormD\DisplayMachineShi1Controller;
 use App\Http\Controllers\FormD\DisplayMachineShi2Controller;
 use App\Http\Controllers\FormD\DisplayMachineBlisterController;
 use App\Http\Controllers\FormD\DisplayMachineSgpController;
+use App\Http\Controllers\FormD\FormDInjectionController;
 use App\Http\Controllers\FormD\FormDMachineAssyController;
 use App\Http\Controllers\FormD\FormDMachineFcsShiController;
+use App\Http\Controllers\FormD\FormDNeedleAssyController;
 use App\Http\Controllers\FormD\MaterialReconController;
 
 use App\Http\Controllers\FormE\FormEAssySyringeController;
@@ -146,73 +150,12 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/tasks/{taskId}/materials-needle-assy/{matId}', [FormCNeedleAssyController::class, 'getMaterialsByMatId']);
     Route::get('/tasks/{taskId}/child-materials-needle-assy/{materialCode}', [FormCNeedleAssyController::class, 'getChildMaterials']);
 
-    // Display Machine Assy Routes
-    Route::get('/display-machine-assy', [DisplayMachineAssyController::class, 'index']);
-    Route::post('/display-machine-assy', [DisplayMachineAssyController::class, 'store']);
-    Route::get('/display-machine-assy/{id}', [DisplayMachineAssyController::class, 'show']);
-    Route::put('/display-machine-assy/{machineId}/{brmNo}', [DisplayMachineAssyController::class, 'update']);
-    Route::delete('/display-machine-assy/{machineId}/{brmNo}', [DisplayMachineAssyController::class, 'destroy']);
-    Route::get('/display-machine-assy/brm/{brmNo}', [DisplayMachineAssyController::class, 'getByBrm']);
-
-    // Display Machine FCS Routes
-    Route::get('/display-machine-fcs', [DisplayMachineFcsController::class, 'index']);
-    Route::post('/display-machine-fcs', [DisplayMachineFcsController::class, 'store']);
-    Route::get('/display-machine-fcs/{id}', [DisplayMachineFcsController::class, 'show']);
-    Route::put('/display-machine-fcs/{id}', [DisplayMachineFcsController::class, 'update']);
-    Route::delete('/display-machine-fcs/{id}', [DisplayMachineFcsController::class, 'destroy']);
-    Route::get('/display-machine-fcs/brm/{brmNo}', [DisplayMachineFcsController::class, 'getByBrm']);
-
-    // Display Machine FCS SHI Routes
-    Route::get('/display-machine-fcs-shi', [DisplayMachineFcsShiController::class, 'index']);
-    Route::post('/display-machine-fcs-shi', [DisplayMachineFcsShiController::class, 'store']);
-    Route::get('/display-machine-fcs-shi/{id}', [DisplayMachineFcsShiController::class, 'show']);
-    Route::put('/display-machine-fcs-shi/{id}', [DisplayMachineFcsShiController::class, 'update']);
-    Route::delete('/display-machine-fcs-shi/{id}', [DisplayMachineFcsShiController::class, 'destroy']);
-    Route::get('/display-machine-fcs-shi/brm/{brmNo}', [DisplayMachineFcsShiController::class, 'getByBrm']);
-
-    // Display Machine SHI-1 Routes
-    Route::get('/display-machine-shi-1', [DisplayMachineShi1Controller::class, 'index']);
-    Route::post('/display-machine-shi-1', [DisplayMachineShi1Controller::class, 'store']);
-    Route::get('/display-machine-shi-1/{id}', [DisplayMachineShi1Controller::class, 'show']);
-    Route::put('/display-machine-shi-1/{id}', [DisplayMachineShi1Controller::class, 'update']);
-    Route::delete('/display-machine-shi-1/{id}', [DisplayMachineShi1Controller::class, 'destroy']);
-    Route::get('/display-machine-shi-1/brm/{brmNo}', [DisplayMachineShi1Controller::class, 'getByBrm']);
-
-    // Display Machine SHI-2 Routes
-    Route::get('/display-machine-shi-2', [DisplayMachineShi2Controller::class, 'index']);
-    Route::post('/display-machine-shi-2', [DisplayMachineShi2Controller::class, 'store']);
-    Route::get('/display-machine-shi-2/{id}', [DisplayMachineShi2Controller::class, 'show']);
-    Route::put('/display-machine-shi-2/{id}', [DisplayMachineShi2Controller::class, 'update']);
-    Route::delete('/display-machine-shi-2/{id}', [DisplayMachineShi2Controller::class, 'destroy']);
-    Route::get('/display-machine-shi-2/brm/{brmNo}', [DisplayMachineShi2Controller::class, 'getByBrm']);
-
-    // Display Machine Blister Routes
-    Route::get('/display-machine-blister', [DisplayMachineBlisterController::class, 'index']);
-    Route::post('/display-machine-blister', [DisplayMachineBlisterController::class, 'store']);
-    Route::get('/display-machine-blister/{id}', [DisplayMachineBlisterController::class, 'show']);
-    Route::put('/display-machine-blister/{machineId}/{brmNo}', [DisplayMachineBlisterController::class, 'update']);
-    Route::delete('/display-machine-blister/{machineId}/{brmNo}', [DisplayMachineBlisterController::class, 'destroy']);
-    Route::get('/display-machine-blister/brm/{brmNo}', [DisplayMachineBlisterController::class, 'getByBrm']);
-
-    // Display Machine SGP Routes
-    Route::get('/display-machine-sgp', [DisplayMachineSgpController::class, 'index']);
-    Route::post('/display-machine-sgp', [DisplayMachineSgpController::class, 'store']);
-    Route::get('/display-machine-sgp/{id}', [DisplayMachineSgpController::class, 'show']);
-    Route::put('/display-machine-sgp/{machineId}/{brmNo}', [DisplayMachineSgpController::class, 'update']);
-    Route::delete('/display-machine-sgp/{machineId}/{brmNo}', [DisplayMachineSgpController::class, 'destroy']);
-    Route::get('/display-machine-sgp/brm/{brmNo}', [DisplayMachineSgpController::class, 'getByBrm']);
-
-    // Form D Display Routes
-    Route::get('/form-d-display', [FormDDisplayController::class, 'index']);
-    Route::post('/form-d-display', [FormDDisplayController::class, 'store']);
-    Route::get('/form-d-display/{id}', [FormDDisplayController::class, 'show']);
-    Route::put('/form-d-display/{id}', [FormDDisplayController::class, 'update']);
-    Route::delete('/form-d-display/{id}', [FormDDisplayController::class, 'destroy']);
-    Route::get('/form-d-display/machine/{machineId}', [FormDDisplayController::class, 'getMachineDisplayData']);
-    Route::get('/form-d-display/brm/{brmNo}', [FormDDisplayController::class, 'getDisplayDataByBrm']);
+    Route::get('/display-machine-assy/form/{taskId}', [FormDAssySyringeController::class, 'getform']);
+    Route::get('/display-machine-blister/form/{taskId}', [FormDBlisterController::class, 'getform']);
+    Route::get('/display-machine-injection/form/{taskId}', [FormDInjectionController::class, 'getform']);
+    Route::get('/display-machine-needle-assy/form/{taskId}', [FormDNeedleAssyController::class, 'getform']);
 
     Route::prefix('form-d')->group(function () {
-        // Material Reconciliation Routes - Place these specific routes FIRST
         Route::get('/material-recon', [MaterialReconController::class, 'index']);
         Route::post('/material-recon', [MaterialReconController::class, 'store']);
         Route::get('/material-recon/{id}', [MaterialReconController::class, 'show']);
@@ -224,17 +167,10 @@ Route::middleware('auth:sanctum')->group(function () {
         // Generic Form D routes - Place these AFTER the more specific routes
         Route::get('/', [FormDController::class, 'index']);
         Route::post('/', [FormDController::class, 'store']);
+        Route::get('/form/{taskId}', [FormDController::class, 'task']);
         Route::get('/{id}', [FormDController::class, 'show']);
         Route::put('/{id}', [FormDController::class, 'update']);
         Route::delete('/{id}', [FormDController::class, 'destroy']);
-
-        // Machine display and data routes
-        Route::get('/machine/{machineId}', [FormDController::class, 'getByMachineId']);
-        Route::get('/display/{displayId}', [FormDController::class, 'getByDisplayId']);
-        Route::post('/get-machine-display', [FormDController::class, 'getFormWithMachineDisplay']);
-        Route::post('/get-machine-display-by-task', [FormDController::class, 'getFormWithMachineDisplayByTask']);
-        Route::post('/get-machine-type', [FormDController::class, 'getMachineType']);
-        Route::post('/store-machine-data', [FormDController::class, 'storeMachineData']);
 
         // Machine Assy routes
         Route::get('/machine-assy/{taskId}', [FormDMachineAssyController::class, 'show']);

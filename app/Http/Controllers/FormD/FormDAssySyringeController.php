@@ -2,22 +2,28 @@
 
 namespace App\Http\Controllers\FormD;
 
-use App\Http\Controllers\Controller;
+use App\Models\FormB\FormBAssySyringe;
+use App\Models\FormD\DisplayMachineAssy;
 use App\Models\FormD\DisplayMachineBlister;
-use App\Models\FormD\FormDDisplay;
+use App\Models\FormD\DisplayMachineFcs;
+use App\Models\FormD\DisplayMachineFcsShi;
+use App\Models\FormD\DisplayMachineSgp;
+use App\Models\FormD\DisplayMachineShi1;
+use App\Models\FormD\DisplayMachineShi2;
 use App\Models\Log;
+use App\Models\MasterMachine;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 
-class DisplayMachineBlisterController extends Controller
+class FormDAssySyringeController
 {
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
-        $displays = DisplayMachineBlister::with(['formDDisplay', 'machine'])->get();
+        $displays = DisplayMachineAssy::with(['formDDisplay', 'machine'])->get();
         return response()->json($displays);
     }
 
@@ -27,18 +33,15 @@ class DisplayMachineBlisterController extends Controller
     public function store(Request $request)
     {
         // Log the incoming request for debugging
-        \Log::info('Display Machine Blister Request:', $request->all());
+        \Log::info('Display Machine Assy Request:', $request->all());
 
         $validator = Validator::make($request->all(), [
             'brm_no' => 'required|string|max:50',
             'machine_id' => 'required|exists:form_d_display,machine_id',
-            'material_type' => 'required|string|max:100',
-            'forming_time' => 'required|string|max:50',
-            'forming_temperature' => 'required|string|max:50',
-            'forming_pressure' => 'required|string|max:50',
-            'sealing_temperature' => 'required|string|max:50',
-            'sealing_pressure' => 'required|string|max:50',
-            'sealing_time' => 'required|string|max:50',
+            'material' => 'required|string|max:100',
+            'print_mach_speed' => 'required|string|max:20',
+            'assy_mach_speed' => 'required|string|max:40',
+            'silicon_spray' => 'required|string|max:10',
         ]);
 
         if ($validator->fails()) {
@@ -52,7 +55,7 @@ class DisplayMachineBlisterController extends Controller
 
         try {
             // Check if entry already exists for this machine_id and brm_no
-            $existingEntry = DisplayMachineBlister::where('machine_id', $request->machine_id)
+            $existingEntry = DisplayMachineAssy::where('machine_id', $request->machine_id)
                 ->where('brm_no', $request->brm_no)
                 ->first();
 
@@ -62,12 +65,12 @@ class DisplayMachineBlisterController extends Controller
                 $display = $existingEntry;
             } else {
                 // Create new entry
-                $display = DisplayMachineBlister::create($request->all());
+                $display = DisplayMachineAssy::create($request->all());
             }
 
             // Log the submission
             Log::create([
-                'action' => 'ADD/UPDATE DISPLAY MACHINE BLISTER',
+                'action' => 'ADD/UPDATE DISPLAY MACHINE ASSY',
                 'created_date' => now(),
                 'created_by' => $request->user() ? $request->user()->nik : 'system',
                 'created_at' => now(),
@@ -80,16 +83,16 @@ class DisplayMachineBlisterController extends Controller
             DB::commit();
 
             return response()->json([
-                'message' => 'Display Machine Blister data saved successfully',
+                'message' => 'Display Machine Assy data saved successfully',
                 'data' => $display
             ], 201);
         } catch (\Exception $e) {
             DB::rollBack();
-            \Log::error('Error saving Display Machine Blister: ' . $e->getMessage());
+            \Log::error('Error saving Display Machine Assy: ' . $e->getMessage());
             \Log::error('Error trace: ' . $e->getTraceAsString());
 
             return response()->json([
-                'message' => 'Failed to save Display Machine Blister data',
+                'message' => 'Failed to save Display Machine Assy data',
                 'error' => $e->getMessage()
             ], 500);
         }
@@ -103,38 +106,38 @@ class DisplayMachineBlisterController extends Controller
         try {
             // Check if ID is a BRM number
             if (is_string($id) && !is_numeric($id)) {
-                $display = DisplayMachineBlister::where('brm_no', $id)
+                $display = DisplayMachineAssy::where('brm_no', $id)
                     ->with(['formDDisplay', 'machine'])
                     ->first();
 
                 if (!$display) {
                     return response()->json([
-                        'message' => 'No Display Machine Blister found for this BRM',
+                        'message' => 'No Display Machine Assy found for this BRM',
                         'data' => null
                     ], 404);
                 }
             } else {
                 // Assume it's a machine_id
-                $display = DisplayMachineBlister::where('machine_id', $id)
+                $display = DisplayMachineAssy::where('machine_id', $id)
                     ->with(['formDDisplay', 'machine'])
                     ->first();
 
                 if (!$display) {
                     return response()->json([
-                        'message' => 'No Display Machine Blister found for this machine',
+                        'message' => 'No Display Machine Assy found for this machine',
                         'data' => null
                     ], 404);
                 }
             }
 
             return response()->json([
-                'message' => 'Display Machine Blister retrieved successfully',
+                'message' => 'Display Machine Assy retrieved successfully',
                 'data' => $display
             ]);
         } catch (\Exception $e) {
-            \Log::error('Error retrieving Display Machine Blister: ' . $e->getMessage());
+            \Log::error('Error retrieving Display Machine Assy: ' . $e->getMessage());
             return response()->json([
-                'message' => 'Failed to retrieve Display Machine Blister',
+                'message' => 'Failed to retrieve Display Machine Assy',
                 'error' => $e->getMessage()
             ], 500);
         }
@@ -146,20 +149,17 @@ class DisplayMachineBlisterController extends Controller
     public function update(Request $request, $machineId, $brmNo)
     {
         // Log the incoming request for debugging
-        \Log::info('Display Machine Blister Update Request:', $request->all());
+        \Log::info('Display Machine Assy Update Request:', $request->all());
 
-        $display = DisplayMachineBlister::where('machine_id', $machineId)
+        $display = DisplayMachineAssy::where('machine_id', $machineId)
             ->where('brm_no', $brmNo)
             ->firstOrFail();
 
         $validator = Validator::make($request->all(), [
-            'material_type' => 'nullable|string|max:100',
-            'forming_time' => 'nullable|string|max:50',
-            'forming_temperature' => 'nullable|string|max:50',
-            'forming_pressure' => 'nullable|string|max:50',
-            'sealing_temperature' => 'nullable|string|max:50',
-            'sealing_pressure' => 'nullable|string|max:50',
-            'sealing_time' => 'nullable|string|max:50',
+            'material' => 'nullable|string|max:100',
+            'print_mach_speed' => 'nullable|string|max:20',
+            'assy_mach_speed' => 'nullable|string|max:40',
+            'silicon_spray' => 'nullable|string|max:10',
         ]);
 
         if ($validator->fails()) {
@@ -174,38 +174,27 @@ class DisplayMachineBlisterController extends Controller
         try {
             $updateData = [];
 
-            if ($request->has('material_type')) {
-                $updateData['material_type'] = $request->material_type;
+            if ($request->has('material')) {
+                $updateData['material'] = $request->material;
             }
 
-            if ($request->has('forming_time')) {
-                $updateData['forming_time'] = $request->forming_time;
+            if ($request->has('print_mach_speed')) {
+                $updateData['print_mach_speed'] = $request->print_mach_speed;
             }
 
-            if ($request->has('forming_temperature')) {
-                $updateData['forming_temperature'] = $request->forming_temperature;
+            if ($request->has('assy_mach_speed')) {
+                $updateData['assy_mach_speed'] = $request->assy_mach_speed;
             }
 
-            if ($request->has('forming_pressure')) {
-                $updateData['forming_pressure'] = $request->forming_pressure;
-            }
-
-            if ($request->has('sealing_temperature')) {
-                $updateData['sealing_temperature'] = $request->sealing_temperature;
-            }
-
-            if ($request->has('sealing_pressure')) {
-                $updateData['sealing_pressure'] = $request->sealing_pressure;
-            }
-
-            if ($request->has('sealing_time')) {
-                $updateData['sealing_time'] = $request->sealing_time;
+            if ($request->has('silicon_spray')) {
+                $updateData['silicon_spray'] = $request->silicon_spray;
             }
 
             $display->update($updateData);
 
+            // Log the update
             Log::create([
-                'action' => 'UPDATE DISPLAY MACHINE BLISTER',
+                'action' => 'UPDATE DISPLAY MACHINE ASSY',
                 'created_date' => now(),
                 'created_by' => $request->user() ? $request->user()->nik : 'system',
                 'created_at' => now(),
@@ -218,14 +207,16 @@ class DisplayMachineBlisterController extends Controller
             DB::commit();
 
             return response()->json([
-                'message' => 'Display Machine Blister updated successfully',
+                'message' => 'Display Machine Assy updated successfully',
                 'data' => $display
             ]);
         } catch (\Exception $e) {
             DB::rollBack();
-            \Log::error('Error updating Display Machine Blister: ' . $e->getMessage());
+            \Log::error('Error updating Display Machine Assy: ' . $e->getMessage());
+            \Log::error('Error trace: ' . $e->getTraceAsString());
+
             return response()->json([
-                'message' => 'Failed to update Display Machine Blister',
+                'message' => 'Failed to update Display Machine Assy',
                 'error' => $e->getMessage()
             ], 500);
         }
@@ -234,22 +225,41 @@ class DisplayMachineBlisterController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy($machineId, $brmNo)
+    public function destroy($machineId, $brmNo, Request $request)
     {
+        DB::beginTransaction();
+
         try {
-            $display = DisplayMachineBlister::where('machine_id', $machineId)
+            $display = DisplayMachineAssy::where('machine_id', $machineId)
                 ->where('brm_no', $brmNo)
                 ->firstOrFail();
 
             $display->delete();
 
+            // Log the deletion
+            Log::create([
+                'action' => 'DELETE DISPLAY MACHINE ASSY',
+                'created_date' => now(),
+                'created_by' => $request->user() ? $request->user()->nik : 'system',
+                'created_at' => now(),
+                'details' => json_encode([
+                    'machine_id' => $machineId,
+                    'brm_no' => $brmNo,
+                ]),
+            ]);
+
+            DB::commit();
+
             return response()->json([
-                'message' => 'Display Machine Blister deleted successfully'
+                'message' => 'Display Machine Assy deleted successfully'
             ]);
         } catch (\Exception $e) {
-            \Log::error('Error deleting Display Machine Blister: ' . $e->getMessage());
+            DB::rollBack();
+            \Log::error('Error deleting Display Machine Assy: ' . $e->getMessage());
+            \Log::error('Error trace: ' . $e->getTraceAsString());
+
             return response()->json([
-                'message' => 'Failed to delete Display Machine Blister',
+                'message' => 'Failed to delete Display Machine Assy',
                 'error' => $e->getMessage()
             ], 500);
         }
@@ -258,7 +268,7 @@ class DisplayMachineBlisterController extends Controller
     public function getform($taskId)
     {
         try {
-            $form_b_data = FormBBlister::where('task_id', $taskId)->first();
+            $form_b_data = FormBAssySyringe::where('task_id', $taskId)->first();
 
             if($form_b_data == null) throw new \Exception('Form b must be filled');
             $machine = MasterMachine::where('machine_code', $form_b_data->machine_id)->first();
@@ -267,14 +277,29 @@ class DisplayMachineBlisterController extends Controller
                     'message' => 'Machine not found for the given machine code.',
                 ], 404);
             }
-            $display = DisplayMachineBlister::where('machine_id', $machine->id_machine)
-                ->with(['machine'])
-                ->first();
-            return response()->json($display);
+            $displayTables = [
+                DisplayMachineAssy::class,
+                DisplayMachineBlister::class,
+                DisplayMachineFcs::class,
+                DisplayMachineFcsShi::class,
+                DisplayMachineSgp::class,
+                DisplayMachineShi1::class,
+                DisplayMachineShi2::class,
+            ];
+
+            foreach ($displayTables as $model) {
+                $display = $model::where('machine_id', $machine->id_machine)
+                    ->with(['machine'])
+                    ->first();
+
+                if ($display) {
+                    return response()->json($display);
+                }
+            }
         } catch (\Exception $e) {
-            \Log::error('Error retrieving Display Machine Blister: ' . $e->getMessage());
+            \Log::error('Error retrieving Display Machine Assy: ' . $e->getMessage());
             return response()->json([
-                'message' => 'Failed to retrieve Display Machine Blister',
+                'message' => 'Failed to retrieve Display Machine Assy',
                 'error' => $e->getMessage()
             ], 500);
         }
@@ -286,25 +311,25 @@ class DisplayMachineBlisterController extends Controller
     public function getByBrm($brmNo)
     {
         try {
-            $display = DisplayMachineBlister::where('brm_no', $brmNo)
+            $display = DisplayMachineAssy::where('brm_no', $brmNo)
                 ->with(['formDDisplay', 'machine'])
                 ->first();
 
             if (!$display) {
                 return response()->json([
-                    'message' => 'No Display Machine Blister found for this BRM',
+                    'message' => 'No Display Machine Assy found for this BRM',
                     'data' => null
                 ], 404);
             }
 
             return response()->json([
-                'message' => 'Display Machine Blister retrieved successfully',
+                'message' => 'Display Machine Assy retrieved successfully',
                 'data' => $display
             ]);
         } catch (\Exception $e) {
-            \Log::error('Error retrieving Display Machine Blister by BRM: ' . $e->getMessage());
+            \Log::error('Error retrieving Display Machine Assy by BRM: ' . $e->getMessage());
             return response()->json([
-                'message' => 'Failed to retrieve Display Machine Blister by BRM',
+                'message' => 'Failed to retrieve Display Machine Assy',
                 'error' => $e->getMessage()
             ], 500);
         }

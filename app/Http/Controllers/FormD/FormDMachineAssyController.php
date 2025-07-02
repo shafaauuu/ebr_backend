@@ -68,7 +68,7 @@ class FormDMachineAssyController extends Controller
             'qc_barrel' => 'nullable|string',
             'qc_gasket' => 'nullable|string',
             'qc_plunger' => 'nullable|string',
-//            'form_d_id' => 'required|exists:form_d,id_form_d',
+            'form_d_id' => 'required|exists:form_d,id_form_d',
             'task_id' => 'required|exists:tasks,id',
             'machine_picture' => 'nullable|string',
         ]);
@@ -86,18 +86,12 @@ class FormDMachineAssyController extends Controller
             // Check if there's an existing record for this task
             $existingRecord = MachineAssy::where('task_id', $request->task_id)->first();
 
-            if ($existingRecord) {
-                // Update existing record
-                $existingRecord->update($request->all());
-                $machineAssy = $existingRecord;
-                $action = 'UPDATE MACHINE ASSY';
-                $message = 'Machine Assy data updated successfully';
-            } else {
+
                 // Create new record
                 $machineAssy = MachineAssy::create($request->all());
                 $action = 'ADD MACHINE ASSY';
                 $message = 'Machine Assy data created successfully';
-            }
+            
 
             // Log the action
             Log::create([

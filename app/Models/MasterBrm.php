@@ -20,4 +20,5 @@ class MasterBrm extends Model
         'product_code',
         'product_name',
     ];
+
 }

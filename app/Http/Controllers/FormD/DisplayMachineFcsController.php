@@ -50,7 +50,7 @@ class DisplayMachineFcsController extends Controller
             $existingEntry = DisplayMachineFcs::where('machine_id', $request->machine_id)
                 ->where('brm_no', $request->brm_no)
                 ->first();
-                
+
             if ($existingEntry) {
                 // Update existing entry
                 $existingEntry->update($request->all());
@@ -102,7 +102,7 @@ class DisplayMachineFcsController extends Controller
                 $display = DisplayMachineFcs::where('brm_no', $id)
                     ->with(['formDDisplay', 'machine'])
                     ->first();
-                
+
                 if (!$display) {
                     return response()->json([
                         'message' => 'No Display Machine FCS found for this BRM',
@@ -114,7 +114,7 @@ class DisplayMachineFcsController extends Controller
                 if (is_numeric($id)) {
                     $display = DisplayMachineFcs::with(['formDDisplay', 'machine'])
                         ->find($id);
-                    
+
                     if ($display) {
                         return response()->json([
                             'message' => 'Display Machine FCS retrieved successfully',
@@ -122,12 +122,12 @@ class DisplayMachineFcsController extends Controller
                         ]);
                     }
                 }
-                
+
                 // If not found by ID or not numeric, try as machine_id
                 $display = DisplayMachineFcs::where('machine_id', $id)
                     ->with(['formDDisplay', 'machine'])
                     ->first();
-                
+
                 if (!$display) {
                     return response()->json([
                         'message' => 'No Display Machine FCS found for this machine',
@@ -159,7 +159,7 @@ class DisplayMachineFcsController extends Controller
 
         try {
             $display = DisplayMachineFcs::findOrFail($id);
-            
+
             // Update the display with all provided fields
             $display->update($request->all());
 
@@ -198,11 +198,11 @@ class DisplayMachineFcsController extends Controller
     {
         try {
             $display = DisplayMachineFcs::findOrFail($id);
-            
+
             // Store info for logging before deletion
             $machineId = $display->machine_id;
             $brmNo = $display->brm_no;
-            
+
             $display->delete();
 
             // Log the deletion
@@ -231,7 +231,32 @@ class DisplayMachineFcsController extends Controller
             ], 500);
         }
     }
-    
+
+    public function getform($taskId)
+    {
+        try {
+            $form_b_data = FormBBlister::where('task_id', $taskId)->first();
+
+            if($form_b_data == null) throw new \Exception('Form b must be filled');
+            $machine = MasterMachine::where('machine_code', $form_b_data->machine_id)->first();
+            if (!$machine) {
+                return response()->json([
+                    'message' => 'Machine not found for the given machine code.',
+                ], 404);
+            }
+            $display = DisplayMachineBlister::where('machine_id', $machine->id_machine)
+                ->with(['machine'])
+                ->first();
+            return response()->json($display);
+        } catch (\Exception $e) {
+            \Log::error('Error retrieving Display Machine Blister: ' . $e->getMessage());
+            return response()->json([
+                'message' => 'Failed to retrieve Display Machine Blister',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
     /**
      * Get display data by BRM number
      */
@@ -241,14 +266,14 @@ class DisplayMachineFcsController extends Controller
             $display = DisplayMachineFcs::where('brm_no', $brmNo)
                 ->with(['formDDisplay', 'machine'])
                 ->first();
-            
+
             if (!$display) {
                 return response()->json([
                     'message' => 'No Display Machine FCS found for this BRM',
                     'data' => null
                 ], 404);
             }
-            
+
             return response()->json([
                 'message' => 'Display Machine FCS retrieved successfully',
                 'data' => $display
