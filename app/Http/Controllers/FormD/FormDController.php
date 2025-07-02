@@ -20,6 +20,7 @@ use App\Models\FormD\MachineAssy;
 use App\Models\FormD\MachineBlister;
 use App\Models\FormD\MachineFcs;
 use App\Models\FormD\MachineFcsShi;
+use App\Models\FormD\MachineSgp;
 use App\Models\FormD\MachineShi1;
 use App\Models\FormD\MachineShi2;
 use App\Models\Log;
@@ -52,6 +53,7 @@ class FormDController extends Controller
 
         $validator = Validator::make($request->all(), [
             'tanggal' => 'required|date',
+            'line_clear' => 'required|boolean',
             'machine_id' => 'required|exists:master_machines,id_machine',
             'material_type' => 'required|string|max:10',
             'code_task' => 'required|string|max:50',
@@ -140,11 +142,11 @@ class FormDController extends Controller
         $displayTables = [
             [DisplayMachineAssy::class, "assy",MachineAssy::class],
             [DisplayMachineBlister::class,"blister", MachineBlister::class],
-            [DisplayMachineFcs::class,"fcs"],
-            [DisplayMachineFcsShi::class,"fcs_shi"],
-            [DisplayMachineSgp::class,"sgp"],
-            [DisplayMachineShi1::class,"shi_1"],
-            [DisplayMachineShi2::class,"shi_2"]
+            [DisplayMachineFcs::class,"fcs", MachineFcs::class],
+            [DisplayMachineFcsShi::class,"fcs_shi", MachineFcsShi::class],
+            [DisplayMachineSgp::class,"sgp", MachineSgp::class],
+            [DisplayMachineShi1::class,"shi_1", MachineShi1::class],
+            [DisplayMachineShi2::class,"shi_2", MachineShi2::class],
         ];
 
         foreach ($displayTables as $model) {
@@ -160,7 +162,9 @@ class FormDController extends Controller
                 $display["form_value"] = FormD::where('task_id', $taskId)
                     ->orderBy('id_form_d', 'desc')
                     ->first();
-                $display["machine_value"] = $model[2]::where('form_d_id', $display["form_value"]->id_form_d)->first();
+                if(isset($display['form_value']) &&  $display["form_value"]->id_form_d != null) {
+                    $display["machine_value"] = $model[2]::where('form_d_id',$display["form_value"]->id_form_d )->first();
+                }
 
                 return response()->json($display);
             }

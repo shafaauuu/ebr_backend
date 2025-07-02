@@ -14,8 +14,9 @@ class MachineAssy extends Model
 
     protected $fillable = [
         'code_task',
-        'print_match_speed',
-        'assy_match_speed',
+        'print_mach_speed',
+        'assy_mach_speed',
+        'silicon_spray',
         'approval',
         'load_barrel',
         'load_plunger',

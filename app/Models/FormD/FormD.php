@@ -2,12 +2,6 @@
 
 namespace App\Models\FormD;
 
-use App\Models\FormDDisplay;
-use App\Models\MachineAssy;
-use App\Models\MachineFcs;
-use App\Models\MachineFcsShi;
-use App\Models\MachineShi1;
-use App\Models\MachineShi2;
 use App\Models\MasterMachine;
 use App\Models\Task;
 use Illuminate\Database\Eloquent\Model;
@@ -22,6 +16,7 @@ class FormD extends Model
 
     protected $fillable = [
         'tanggal',
+        'line_clear',
         'machine_id',
         'material_type',
         'code_task',
@@ -75,5 +70,10 @@ class FormD extends Model
     public function machineShi2(): HasOne
     {
         return $this->hasOne(MachineShi2::class, 'form_d_id', 'id_form_d');
+    }
+
+    public function machineSgp(): HasOne
+    {
+        return $this->hasOne(MachineSgp::class, 'form_d_id', 'id_form_d');
     }
 }
