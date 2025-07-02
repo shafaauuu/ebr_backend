@@ -74,6 +74,7 @@ class FormDController extends Controller
         try {
             $formData = [
                 'tanggal' => $request->tanggal,
+                'line_clear' => $request->line_clear,
                 'machine_id' => $request->machine_id,
                 'material_type' => $request->material_type,
                 'code_task' => $request->code_task,
