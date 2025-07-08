@@ -55,7 +55,7 @@ class FormDController extends Controller
             'tanggal' => 'required|date',
             'line_clear' => 'required|boolean',
             'machine_id' => 'required|exists:master_machines,id_machine',
-            'material_type' => 'required|string|max:10',
+            'material_type' => 'required|string|max:100',
             'code_task' => 'required|string|max:50',
             'brm_no' => 'required|string|max:50',
             'shift' => 'required|string|max:2',

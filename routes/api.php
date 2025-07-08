@@ -34,6 +34,7 @@ use App\Http\Controllers\FormD\FormDMachineAssyController;
 use App\Http\Controllers\FormD\FormDMachineFcsShiController;
 use App\Http\Controllers\FormD\FormDNeedleAssyController;
 use App\Http\Controllers\FormD\MaterialReconController;
+use App\Http\Controllers\FormD\FormDMachineBlisterController;
 
 use App\Http\Controllers\FormE\FormEAssySyringeController;
 use App\Http\Controllers\FormE\FormEBlisterController;
@@ -179,6 +180,11 @@ Route::middleware('auth:sanctum')->group(function () {
         // Machine FCS SHI routes
         Route::get('/machine-fcs-shi/{taskId}', [FormDMachineFcsShiController::class, 'show']);
         Route::post('/machine-fcs-shi', [FormDMachineFcsShiController::class, 'store']);
+
+        // Machine Blister routes
+        Route::get('/machine-blister/{taskId}', [FormDMachineBlisterController::class, 'show']);
+        Route::post('/machine-blister', [FormDMachineBlisterController::class, 'store']);
+
     });
 
     Route::post('/form-e-assy-syringe', [FormEAssySyringeController::class, 'store']);
