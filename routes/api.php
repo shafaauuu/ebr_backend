@@ -21,20 +21,16 @@ use App\Http\Controllers\FormC\FormCNeedleAssyController;
 use App\Http\Controllers\FormD\FormDAssySyringeController;
 use App\Http\Controllers\FormD\FormDBlisterController;
 use App\Http\Controllers\FormD\FormDController;
-use App\Http\Controllers\FormD\FormDDisplayController;
-use App\Http\Controllers\FormD\DisplayMachineAssyController;
-use App\Http\Controllers\FormD\DisplayMachineFcsController;
-use App\Http\Controllers\FormD\DisplayMachineFcsShiController;
-use App\Http\Controllers\FormD\DisplayMachineShi1Controller;
-use App\Http\Controllers\FormD\DisplayMachineShi2Controller;
-use App\Http\Controllers\FormD\DisplayMachineBlisterController;
-use App\Http\Controllers\FormD\DisplayMachineSgpController;
 use App\Http\Controllers\FormD\FormDInjectionController;
 use App\Http\Controllers\FormD\FormDMachineAssyController;
+use App\Http\Controllers\FormD\FormDMachineFcsController;
 use App\Http\Controllers\FormD\FormDMachineFcsShiController;
 use App\Http\Controllers\FormD\FormDNeedleAssyController;
 use App\Http\Controllers\FormD\MaterialReconController;
 use App\Http\Controllers\FormD\FormDMachineBlisterController;
+use App\Http\Controllers\FormD\FormDMachineSgpController;
+use App\Http\Controllers\FormD\FormDMachineShi1Controller;
+use App\Http\Controllers\FormD\FormDMachineShi2Controller;
 
 use App\Http\Controllers\FormE\FormEAssySyringeController;
 use App\Http\Controllers\FormE\FormEBlisterController;
@@ -177,13 +173,29 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/machine-assy/{taskId}', [FormDMachineAssyController::class, 'show']);
         Route::post('/machine-assy', [FormDMachineAssyController::class, 'store']);
 
+        // Machine Blister routes
+        Route::get('/machine-blister/{taskId}', [FormDMachineBlisterController::class, 'show']);
+        Route::post('/machine-blister', [FormDMachineBlisterController::class, 'store']);
+
+        // Machine FCS routes
+        Route::get('/machine-fcs/{taskId}', [FormDMachineFcsController::class, 'show']);
+        Route::post('/machine-fcs', [FormDMachineFcsController::class, 'store']);
+
         // Machine FCS SHI routes
         Route::get('/machine-fcs-shi/{taskId}', [FormDMachineFcsShiController::class, 'show']);
         Route::post('/machine-fcs-shi', [FormDMachineFcsShiController::class, 'store']);
 
-        // Machine Blister routes
-        Route::get('/machine-blister/{taskId}', [FormDMachineBlisterController::class, 'show']);
-        Route::post('/machine-blister', [FormDMachineBlisterController::class, 'store']);
+        // Machine SGP routes
+        Route::get('/machine-sgp/{taskId}', [FormDMachineSgpController::class, 'show']);
+        Route::post('/machine-sgp', [FormDMachineSgpController::class, 'store']);
+
+        // Machine SHI 1 routes
+        Route::get('/machine-shi-1/{taskId}', [FormDMachineShi1Controller::class, 'show']);
+        Route::post('/machine-shi-1', [FormDMachineShi1Controller::class, 'store']);
+
+        // Machine SHI 2 routes
+        Route::get('/machine-shi-2/{taskId}', [FormDMachineShi2Controller::class, 'show']);
+        Route::post('/machine-shi-2', [FormDMachineShi2Controller::class, 'store']);
 
     });
 

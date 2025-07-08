@@ -1,4 +1,3 @@
-
 <?php
 
 namespace App\Http\Controllers\FormD;
@@ -73,15 +72,15 @@ class FormDMachineFcsShiController extends Controller
             'holding_time' => 'nullable|numeric',
             'eject_counter' => 'nullable|numeric',
             'cycle_time' => 'nullable|numeric',
-            'masterbatch' => 'nullable|string',
+            'masterbatch' => 'nullable|integer',
             'berat_produk' => 'nullable|numeric',
             'berat_runner' => 'nullable|numeric',
-            'cavity' => 'nullable|numeric',
-            'sampling' => 'nullable|numeric',
-            'defect' => 'nullable|numeric',
+            'cavity' => 'nullable|integer',
+            'sampling' => 'nullable|integer',
+            'defect' => 'nullable|integer',
             'form_d_id' => 'required|exists:form_d,id_form_d',
             'task_id' => 'required|exists:tasks,id',
-            'machine_picture' => 'nullable|string',
+            'machine_picture' => 'nullable',
         ]);
 
         if ($validator->fails()) {
@@ -94,21 +93,10 @@ class FormDMachineFcsShiController extends Controller
         DB::beginTransaction();
 
         try {
-            // Check if there's an existing record for this task
-            $existingRecord = MachineFcsShi::where('task_id', $request->task_id)->first();
-
-            if ($existingRecord) {
-                // Update existing record
-                $existingRecord->update($request->all());
-                $machineFcsShi = $existingRecord;
-                $action = 'UPDATE MACHINE FCS SHI';
-                $message = 'Machine FCS SHI data updated successfully';
-            } else {
-                // Create new record
-                $machineFcsShi = MachineFcsShi::create($request->all());
-                $action = 'ADD MACHINE FCS SHI';
-                $message = 'Machine FCS SHI data created successfully';
-            }
+            // Create new record
+            $machineFcsShi = MachineFcsShi::create($request->all());
+            $action = 'ADD MACHINE FCS SHI';
+            $message = 'Machine FCS SHI data created successfully';
 
             // Log the action
             Log::create([
@@ -128,7 +116,7 @@ class FormDMachineFcsShiController extends Controller
             return response()->json([
                 'message' => $message,
                 'data' => $machineFcsShi
-            ], $existingRecord ? 200 : 201);
+            ], 201);
         } catch (\Exception $e) {
             DB::rollBack();
             \Log::error('Error submitting Machine FCS SHI data: ' . $e->getMessage());
