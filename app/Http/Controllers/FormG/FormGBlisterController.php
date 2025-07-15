@@ -15,7 +15,7 @@ class FormGBlisterController extends Controller
      */
     public function index()
     {
-        $forms = FormGBlisterController::with(['task'])->get();
+        $forms = FormGBlister::with(['task'])->get();
 
         $formattedForms = [];
         foreach ($forms as $form) {
@@ -66,41 +66,29 @@ class FormGBlisterController extends Controller
 
             // Process signed_1 data
             if ($request->hasFile('signed_1')) {
-                $formData['signed_1'] = pg_escape_bytea(file_get_contents($request->file('signed_1')->getRealPath()));
+                $fileContent = file_get_contents($request->file('signed_1')->getRealPath());
+                $formData['signed_1'] = 'data:image/png;base64,' . base64_encode($fileContent);
             } elseif ($request->has('signed_1') && is_string($request->signed_1) && !empty($request->signed_1)) {
-                // Handle base64 encoded string
-                $base64String = $request->signed_1;
-                // Remove data:image/png;base64, prefix if present
-                if (strpos($base64String, 'data:image') !== false) {
-                    $base64String = explode(',', $base64String)[1];
-                }
-                $formData['signed_1'] = pg_escape_bytea(base64_decode($base64String));
+                // Store the base64 string directly
+                $formData['signed_1'] = $request->signed_1;
             }
 
             // Process signed_2 data
             if ($request->hasFile('signed_2')) {
-                $formData['signed_2'] = pg_escape_bytea(file_get_contents($request->file('signed_2')->getRealPath()));
+                $fileContent = file_get_contents($request->file('signed_2')->getRealPath());
+                $formData['signed_2'] = 'data:image/png;base64,' . base64_encode($fileContent);
             } elseif ($request->has('signed_2') && is_string($request->signed_2) && !empty($request->signed_2)) {
-                // Handle base64 encoded string
-                $base64String = $request->signed_2;
-                // Remove data:image/png;base64, prefix if present
-                if (strpos($base64String, 'data:image') !== false) {
-                    $base64String = explode(',', $base64String)[1];
-                }
-                $formData['signed_2'] = pg_escape_bytea(base64_decode($base64String));
+                // Store the base64 string directly
+                $formData['signed_2'] = $request->signed_2;
             }
 
             // Process signed_3 data
             if ($request->hasFile('signed_3')) {
-                $formData['signed_3'] = pg_escape_bytea(file_get_contents($request->file('signed_3')->getRealPath()));
+                $fileContent = file_get_contents($request->file('signed_3')->getRealPath());
+                $formData['signed_3'] = 'data:image/png;base64,' . base64_encode($fileContent);
             } elseif ($request->has('signed_3') && is_string($request->signed_3) && !empty($request->signed_3)) {
-                // Handle base64 encoded string
-                $base64String = $request->signed_3;
-                // Remove data:image/png;base64, prefix if present
-                if (strpos($base64String, 'data:image') !== false) {
-                    $base64String = explode(',', $base64String)[1];
-                }
-                $formData['signed_3'] = pg_escape_bytea(base64_decode($base64String));
+                // Store the base64 string directly
+                $formData['signed_3'] = $request->signed_3;
             }
 
             $form = FormGBlister::create($formData);
@@ -248,41 +236,29 @@ class FormGBlisterController extends Controller
 
             // Process signed_1 data
             if ($request->hasFile('signed_1')) {
-                $updateData['signed_1'] = pg_escape_bytea(file_get_contents($request->file('signed_1')->getRealPath()));
+                $fileContent = file_get_contents($request->file('signed_1')->getRealPath());
+                $updateData['signed_1'] = 'data:image/png;base64,' . base64_encode($fileContent);
             } elseif ($request->has('signed_1') && is_string($request->signed_1) && !empty($request->signed_1)) {
-                // Handle base64 encoded string
-                $base64String = $request->signed_1;
-                // Remove data:image/png;base64, prefix if present
-                if (strpos($base64String, 'data:image') !== false) {
-                    $base64String = explode(',', $base64String)[1];
-                }
-                $updateData['signed_1'] = pg_escape_bytea(base64_decode($base64String));
+                // Store the base64 string directly
+                $updateData['signed_1'] = $request->signed_1;
             }
 
             // Process signed_2 data
             if ($request->hasFile('signed_2')) {
-                $updateData['signed_2'] = pg_escape_bytea(file_get_contents($request->file('signed_2')->getRealPath()));
+                $fileContent = file_get_contents($request->file('signed_2')->getRealPath());
+                $updateData['signed_2'] = 'data:image/png;base64,' . base64_encode($fileContent);
             } elseif ($request->has('signed_2') && is_string($request->signed_2) && !empty($request->signed_2)) {
-                // Handle base64 encoded string
-                $base64String = $request->signed_2;
-                // Remove data:image/png;base64, prefix if present
-                if (strpos($base64String, 'data:image') !== false) {
-                    $base64String = explode(',', $base64String)[1];
-                }
-                $updateData['signed_2'] = pg_escape_bytea(base64_decode($base64String));
+                // Store the base64 string directly
+                $updateData['signed_2'] = $request->signed_2;
             }
 
             // Process signed_3 data
             if ($request->hasFile('signed_3')) {
-                $updateData['signed_3'] = pg_escape_bytea(file_get_contents($request->file('signed_3')->getRealPath()));
+                $fileContent = file_get_contents($request->file('signed_3')->getRealPath());
+                $updateData['signed_3'] = 'data:image/png;base64,' . base64_encode($fileContent);
             } elseif ($request->has('signed_3') && is_string($request->signed_3) && !empty($request->signed_3)) {
-                // Handle base64 encoded string
-                $base64String = $request->signed_3;
-                // Remove data:image/png;base64, prefix if present
-                if (strpos($base64String, 'data:image') !== false) {
-                    $base64String = explode(',', $base64String)[1];
-                }
-                $updateData['signed_3'] = pg_escape_bytea(base64_decode($base64String));
+                // Store the base64 string directly
+                $updateData['signed_3'] = $request->signed_3;
             }
 
             // Update task_code if provided
@@ -374,7 +350,7 @@ class FormGBlisterController extends Controller
 
     /**
      * Format form data for API responses
-     * Handles binary data properly and adds necessary attributes
+     * Handles signature data as strings
      */
     private function formatFormData($form)
     {
@@ -399,29 +375,17 @@ class FormGBlisterController extends Controller
             ] : null,
         ];
 
-        // Add base64 encoded signatures if they exist
+        // Add signatures if they exist (already stored as strings)
         if (!empty($form->signed_1)) {
-            // Handle both string and resource types
-            if (is_resource($form->signed_1)) {
-                // If it's a resource (stream), read from it
-                $binaryData = stream_get_contents($form->signed_1);
-            } else {
-                // If it's already a string, handle potential pg_escape_bytea encoding
-                $binaryData = function_exists('pg_unescape_bytea') ? pg_unescape_bytea($form->signed_1) : $form->signed_1;
-            }
-            $formattedData['signed_1'] = 'data:image/png;base64,' . base64_encode($binaryData);
+            $formattedData['signed_1'] = $form->signed_1;
         }
 
         if (!empty($form->signed_2)) {
-            // Handle both string and resource types
-            if (is_resource($form->signed_2)) {
-                // If it's a resource (stream), read from it
-                $binaryData = stream_get_contents($form->signed_2);
-            } else {
-                // If it's already a string, handle potential pg_escape_bytea encoding
-                $binaryData = function_exists('pg_unescape_bytea') ? pg_unescape_bytea($form->signed_2) : $form->signed_2;
-            }
-            $formattedData['signed_2'] = 'data:image/png;base64,' . base64_encode($binaryData);
+            $formattedData['signed_2'] = $form->signed_2;
+        }
+
+        if (!empty($form->signed_3)) {
+            $formattedData['signed_3'] = $form->signed_3;
         }
 
         return $formattedData;
