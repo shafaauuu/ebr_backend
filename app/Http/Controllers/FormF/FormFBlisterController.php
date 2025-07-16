@@ -29,8 +29,8 @@ class FormFBlisterController extends Controller
         \Log::info('Form F Blister Request:', $request->all());
 
         $validator = Validator::make($request->all(), [
-            'label_mesin' => 'required|file|mimes:jpeg,png,jpg,pdf',
-            'label_2' => 'required|file|mimes:jpeg,png,jpg,pdf',
+            'label_mesin' => 'required',
+            'label_2' => 'required',
             'task_code' => 'required|string|max:255',
             'task_id' => 'required|exists:tasks,id',
         ]);
@@ -45,18 +45,28 @@ class FormFBlisterController extends Controller
         \DB::beginTransaction();
 
         try {
-            // Process label_mesin file
-            $labelMesinContent = file_get_contents($request->file('label_mesin')->getRealPath());
-            
-            // Process label_2 file
-            $label2Content = file_get_contents($request->file('label_2')->getRealPath());
-
             $formData = [
-                'label_mesin' => $labelMesinContent,
-                'label_2' => $label2Content,
                 'task_code' => $request->task_code,
                 'task_id' => $request->task_id,
             ];
+
+            // Process label_mesin file
+            if ($request->hasFile('label_mesin')) {
+                $fileContent = file_get_contents($request->file('label_mesin')->getRealPath());
+                $formData['label_mesin'] = 'data:' . $request->file('label_mesin')->getMimeType() . ';base64,' . base64_encode($fileContent);
+            } elseif ($request->has('label_mesin') && is_string($request->label_mesin) && !empty($request->label_mesin)) {
+                // Store the base64 string directly
+                $formData['label_mesin'] = $request->label_mesin;
+            }
+            
+            // Process label_2 file
+            if ($request->hasFile('label_2')) {
+                $fileContent = file_get_contents($request->file('label_2')->getRealPath());
+                $formData['label_2'] = 'data:' . $request->file('label_2')->getMimeType() . ';base64,' . base64_encode($fileContent);
+            } elseif ($request->has('label_2') && is_string($request->label_2) && !empty($request->label_2)) {
+                // Store the base64 string directly
+                $formData['label_2'] = $request->label_2;
+            }
 
             $form = FormFBlister::create($formData);
 
@@ -145,8 +155,8 @@ class FormFBlisterController extends Controller
         $form = FormFBlister::findOrFail($id);
 
         $validator = Validator::make($request->all(), [
-            'label_mesin' => 'nullable|file|mimes:jpeg,png,jpg,pdf',
-            'label_2' => 'nullable|file|mimes:jpeg,png,jpg,pdf',
+            'label_mesin' => 'nullable',
+            'label_2' => 'nullable',
             'task_code' => 'nullable|string|max:255',
         ]);
 
@@ -164,14 +174,20 @@ class FormFBlisterController extends Controller
 
             // Process label_mesin file if provided
             if ($request->hasFile('label_mesin')) {
-                $labelMesinContent = file_get_contents($request->file('label_mesin')->getRealPath());
-                $updateData['label_mesin'] = $labelMesinContent;
+                $fileContent = file_get_contents($request->file('label_mesin')->getRealPath());
+                $updateData['label_mesin'] = 'data:' . $request->file('label_mesin')->getMimeType() . ';base64,' . base64_encode($fileContent);
+            } elseif ($request->has('label_mesin') && is_string($request->label_mesin) && !empty($request->label_mesin)) {
+                // Store the base64 string directly
+                $updateData['label_mesin'] = $request->label_mesin;
             }
             
             // Process label_2 file if provided
             if ($request->hasFile('label_2')) {
-                $label2Content = file_get_contents($request->file('label_2')->getRealPath());
-                $updateData['label_2'] = $label2Content;
+                $fileContent = file_get_contents($request->file('label_2')->getRealPath());
+                $updateData['label_2'] = 'data:' . $request->file('label_2')->getMimeType() . ';base64,' . base64_encode($fileContent);
+            } elseif ($request->has('label_2') && is_string($request->label_2) && !empty($request->label_2)) {
+                // Store the base64 string directly
+                $updateData['label_2'] = $request->label_2;
             }
 
             // Update task_code if provided
