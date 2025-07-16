@@ -34,6 +34,11 @@ class FormDMachineAssyController extends Controller
                 ], 404);
             }
 
+            // Convert text fields to string
+            $machineAssy->qc_barrel = (string) $machineAssy->qc_barrel;
+            $machineAssy->qc_gasket = (string) $machineAssy->qc_gasket;
+            $machineAssy->qc_plunger = (string) $machineAssy->qc_plunger;
+
             return response()->json([
                 'message' => 'Machine Assy data retrieved successfully',
                 'data' => $machineAssy
@@ -60,17 +65,24 @@ class FormDMachineAssyController extends Controller
 
         $validator = Validator::make($request->all(), [
             'code_task' => 'required|string|max:50',
-            'actual_running' => 'nullable|numeric',
-            'run_awal' => 'nullable|numeric',
-            'defect' => 'nullable|numeric',
-            'goods_ok' => 'nullable|numeric',
-            'goods_reject' => 'nullable|numeric',
+            'print_mach_speed' => 'nullable|integer',
+            'assy_mach_speed' => 'nullable|integer',
+            'approval' => 'nullable|string',
+            'load_barrel' => 'nullable|boolean',
+            'load_plunger' => 'nullable|boolean',
+            'load_gasket' => 'nullable|boolean',
+            'actual_running' => 'nullable|integer',
+            'run_awal' => 'nullable|integer',
+            'defect' => 'nullable|integer',
+            'goods_ok' => 'nullable|integer',
+            'goods_reject' => 'nullable|integer',
             'qc_barrel' => 'nullable|string',
             'qc_gasket' => 'nullable|string',
             'qc_plunger' => 'nullable|string',
             'form_d_id' => 'required|exists:form_d,id_form_d',
             'task_id' => 'required|exists:tasks,id',
             'machine_picture' => 'nullable|string',
+            'silicon_spray' => 'nullable|string|max:10',
         ]);
 
         if ($validator->fails()) {
@@ -86,12 +98,18 @@ class FormDMachineAssyController extends Controller
             // Check if there's an existing record for this task
             $existingRecord = MachineAssy::where('task_id', $request->task_id)->first();
 
-
+            if ($existingRecord) {
+                // Update existing record
+                $existingRecord->update($request->all());
+                $machineAssy = $existingRecord;
+                $action = 'UPDATE MACHINE ASSY';
+                $message = 'Machine Assy data updated successfully';
+            } else {
                 // Create new record
                 $machineAssy = MachineAssy::create($request->all());
                 $action = 'ADD MACHINE ASSY';
                 $message = 'Machine Assy data created successfully';
-            
+            }
 
             // Log the action
             Log::create([

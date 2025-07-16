@@ -56,7 +56,7 @@ class FormDController extends Controller
             'line_clear' => 'required|boolean',
             'machine_id' => 'required|exists:master_machines,id_machine',
             'material_type' => 'required|string|max:100',
-            'code_task' => 'required|string|max:50',
+            'code_task' => 'nullable|string|max:50', 
             'brm_no' => 'required|string|max:50',
             'shift' => 'required|string|max:2',
             'task_id' => 'required|exists:tasks,id',
@@ -72,12 +72,23 @@ class FormDController extends Controller
         DB::beginTransaction();
 
         try {
+            // Generate code_task if not provided
+            $code_task = $request->code_task;
+            if (empty($code_task)) {
+                // Generate a code based on task_id and current timestamp
+                $task = Task::find($request->task_id);
+                $code_task = 'TASK-' . $request->task_id . '-' . date('YmdHis');
+                
+                // Log that we're auto-generating the code
+                \Log::info('Auto-generating code_task: ' . $code_task);
+            }
+
             $formData = [
                 'tanggal' => $request->tanggal,
                 'line_clear' => $request->line_clear,
                 'machine_id' => $request->machine_id,
                 'material_type' => $request->material_type,
-                'code_task' => $request->code_task,
+                'code_task' => $code_task, 
                 'brm_no' => $request->brm_no,
                 'shift' => $request->shift,
                 'task_id' => $request->task_id,
